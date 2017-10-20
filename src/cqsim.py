@@ -1,3 +1,5 @@
+'''main'''
+
 import optparse
 import os
 import sys
@@ -79,6 +81,12 @@ def callback_ad_bf_para (option, opt_str, value, parser):
 def callback_ad_alg_para (option, opt_str, value, parser):
     temp_opt['ad_alg_para'].append(value)
     return
+def callback_avg_uti (option, opt_str, value, parser):
+    temp_opt['avg_uti'].append(value)
+    return
+def callback_mon_para (option, opt_str, value, parser):
+    temp_opt['mon_para'].append(value)
+    return
 
 def get_raw_name (file_name):
     output_name = ""
@@ -145,7 +153,7 @@ def read_config(fileName):
 
 if __name__ == "__main__":
     
-    temp_opt={'alg':[],'alg_sign':[],'bf_para':[],'win_para':[],'ad_win_para':[],'ad_bf_para':[],'ad_alg_para':[]}
+    temp_opt={'alg':[],'alg_sign':[],'bf_para':[],'win_para':[],'ad_win_para':[],'ad_bf_para':[],'ad_alg_para':[],'avg_uti':[],'mon_para':[]}
     p = optparse.OptionParser(option_class=Option)
     # 1
     p.add_option("-j", "--job", dest="job_trace", type="string", \
@@ -274,6 +282,16 @@ if __name__ == "__main__":
         help="system config file")
     p.add_option("-m", "--monitor", dest="monitor", type="int",\
         help="monitor interval time")
+    
+    # 40
+    p.add_option("-M", "--mon_para", dest="mon_para", type="string",\
+        action="callback", callback=callback_mon_para,\
+        help="monitor parameter list")
+    p.add_option("-u", "--uti", dest="avg_uti", type="string",\
+        action="callback", callback=callback_avg_uti,\
+        help="avgrage utilization interval")
+    p.add_option("-e", "--ver", dest="module_ver", type="string",\
+        help="module group version name")
         
     opts, args = p.parse_args()
 
@@ -287,6 +305,8 @@ if __name__ == "__main__":
     opts.ad_win_para = temp_opt['ad_win_para']
     opts.ad_bf_para = temp_opt['ad_bf_para']
     opts.ad_alg_para = temp_opt['ad_alg_para']
+    opts.avg_uti = temp_opt['avg_uti']
+    opts.mon_para = temp_opt['mon_para']
         
     inputPara['resource_job']=0
     inputPara['resource_node']=0
@@ -343,6 +363,11 @@ if __name__ == "__main__":
         opts.ad_bf_para = []
     if not opts.ad_alg_para:
         opts.ad_alg_para = []
+    if not opts.avg_uti:
+        opts.avg_uti = []
+    if not opts.mon_para:
+        opts.mon_para = []
+        
     '''
     if not opts.job_save:
         print "Error: Please specify at least one node structure!"
@@ -387,9 +412,12 @@ if __name__ == "__main__":
     inputPara['ad_bf_para']=opts.ad_bf_para
     inputPara['ad_alg']=opts.ad_alg
     inputPara['ad_alg_para']=opts.ad_alg_para
+    inputPara['avg_uti']=opts.avg_uti
+    inputPara['mon_para']=opts.mon_para
     inputPara['config_n']=opts.config_n
     inputPara['config_sys']=opts.config_sys
     inputPara['monitor']=opts.monitor
+    inputPara['module_ver']=opts.module_ver
 
     for item in inputPara_name:
         if not inputPara[item]:
@@ -419,7 +447,9 @@ if __name__ == "__main__":
                    item=="win_para" or \
                    item=="ad_win_para" or \
                    item=="ad_bf_para" or \
-                   item=="ad_alg_para":
+                   item=="ad_alg_para" or \
+                   item=="mon_para" or \
+                   item=="avg_uti":
                     inputPara[item]=get_list(inputPara_sys[item],r'([^,]+)')
                 else:  
                     inputPara[item]=str(inputPara_sys[item])
@@ -433,5 +463,8 @@ if __name__ == "__main__":
     inputPara['path_out']=cqsim_path.path_data+inputPara['path_out']
     inputPara['path_fmt']=cqsim_path.path_data+inputPara['path_fmt']
     inputPara['path_debug']=cqsim_path.path_data+inputPara['path_debug']
-    inputPara['alg_sign']=alg_sign_check(inputPara['alg_sign'],len(inputPara['alg']))
+    inputPara['alg_sign']=alg_sign_check(inputPara['alg_sign'],len(inputPara['alg']))    
+    if not inputPara['module_ver']:
+        inputPara['module_ver'] = "ORG"
+        
     cqsim_main.cqsim_main(inputPara)

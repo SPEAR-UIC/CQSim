@@ -3,7 +3,7 @@ import IOModule.Log_print as Log_print
 __metaclass__ = type
 
 class Debug_log:
-    def __init__(self, lvl=2,show=2, path=None):
+    def __init__(self, lvl=2, show=2, path=None):
         self.myInfo = "Debug"
         self.lvl = lvl
         self.path = path
@@ -12,9 +12,11 @@ class Debug_log:
         self.debugFile=Log_print.Log_print(self.path,0)
         self.reset_log()
     
-    def reset(self, lvl=None, path=None):
+    def reset(self, lvl=None, show=None, path=None):
         if lvl:
             self.lvl = lvl
+        if show:
+            self.show = show
         if path:
             self.path = path
         self.debugFile.reset(self.path,0)
@@ -30,10 +32,10 @@ class Debug_log:
     def set_lvl(self,lvl=0):
         self.lvl = lvl
 
-    def debug(self,context,lvl=3):
+    def debug(self,context,lvl=3,isEnter=1):
         if (lvl<=self.lvl):
             self.debugFile.file_open()
-            self.debugFile.log_print(context,1)
+            self.debugFile.log_print(context,isEnter)
             self.debugFile.file_close()
             if (lvl>=self.show):
                 print context

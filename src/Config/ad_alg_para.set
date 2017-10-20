@@ -1,0 +1,11 @@
+adapt_data_name=element,element
+adapt_data_para=0,4
+check_data_name=ad_alg
+check_data_para=1
+avg_uti=600,3600
+adapt_item=0,1,-1,-1,0
+adapt_item=0,1,1,1,2
+adapt_item=1,0,2,-1,0
+adapt_item=1,0,4,1,2
+bound_item=0,1,3
+bound_item=1,2,4

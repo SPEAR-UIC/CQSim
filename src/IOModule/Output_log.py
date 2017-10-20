@@ -31,12 +31,13 @@ class Output_log:
         self.job_result.file_open()
         self.job_result.file_close()
         self.job_result.reset(self.output_path['result'],1)              
-            
-
+        
     def print_sys_info(self, sys_info):
         sep_sign=";"
         sep_sign_B=" "
+        sep_sign_C="\t"
         context = ""
+        '''
         context += str(sys_info['date'])
         context += sep_sign
         context += str(sys_info['event'])
@@ -46,16 +47,56 @@ class Output_log:
         
         context += ('uti'+'='+str(sys_info['uti']))
         context += sep_sign_B
-        context += ('waitNum'+'='+str(sys_info['waitNum']))
+        context += ('waitTime'+'='+str(sys_info['waittime']))
         context += sep_sign_B
-        context += ('waitSize'+'='+str(sys_info['waitSize']))
+        context += ('slowdown'+'='+str(sys_info['slowdown']))
+        context += sep_sign_B
+        context += ('avgUti'+'='+str(sys_info['avg_uti'][0]))
+        
         self.sys_info.file_open()
         self.sys_info.log_print(context,1)
         self.sys_info.file_close()
-    
+        '''
+        if (sys_info['event'] != 'S' and sys_info['event'] != 'Q' and sys_info['event'] != 'E' ):
+            context += str(sys_info['time']*1.0/2592000)
+            context += sep_sign_C
+            context += str(sys_info['job_submit'])
+            context += sep_sign_C
+            context += str(sys_info['job_start'])
+            context += sep_sign_C
+            context += str(sys_info['job_end'])
+            context += sep_sign_C
+            context += str(sys_info['ave_uti'])
+            context += sep_sign_C
+            context += str(sys_info['waittime_s'])
+            context += sep_sign_C
+            context += str(sys_info['waittime_e'])
+            context += sep_sign_C
+            context += str(sys_info['slowdown'])
+            context += sep_sign_C
+            context += str(sys_info['queue_depth'])
+            context += sep_sign_C
+            context += str(sys_info['tot_uti'])
+            self.sys_info.file_open()
+            self.sys_info.log_print(context,1)
+            self.sys_info.file_close()
+        '''
+        context += str(sys_info['event'])
+        self.sys_info.file_open()
+        self.sys_info.log_print(context,1)
+        self.sys_info.file_close()
+        '''
+        
     def print_adapt(self, adapt_info):
         sep_sign=";"
         context = ""
+        
+        i = 0
+        adapt_num = len(adapt_info)
+        while (i < adapt_num):
+            context += str(adapt_info[i])
+            context += sep_sign
+            i += 1
         self.adapt_info.file_open()
         self.adapt_info.log_print(context,1)
         self.adapt_info.file_close()
@@ -67,6 +108,7 @@ class Output_log:
         i = 0
         done_list = job_module.done_list()
         job_num = len(done_list)
+        
         while (i<job_num):
             temp_job = job_module.job_info(i)
             context = ""
@@ -87,7 +129,10 @@ class Output_log:
             context += str(temp_job['start'])
             context += sep_sign
             context += str(temp_job['end'])
+            #context += sep_sign
+            #context += str(temp_job['nodeList'])
             self.job_result.log_print(context,1)
             
             i += 1
+            
         self.job_result.file_close()

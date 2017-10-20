@@ -11,16 +11,13 @@ class Job_trace:
         self.start_offset_A = 0.0
         self.start_offset_B = 0.0
         self.start_date = ""
+        self.time_zone = ""
         self.anchor = anchor
         self.read_num = num
         self.density = density
         self.debug = debug
         self.jobTrace=[]
-
-        self.debug.line(4," ")
-        self.debug.line(4,"#")
-        self.debug.debug("# "+self.myInfo,1)
-        self.debug.line(4,"#")
+        self.show_module_info()
         
         self.reset_data()
         
@@ -40,6 +37,10 @@ class Job_trace:
             self.debug = debug
         self.jobTrace=[]
         self.reset_data()
+    
+    def show_module_info (self):
+        #self.debug.line(1," ")
+        self.debug.debug("-- "+self.myInfo,1)    
             
     def reset_data(self):
         #self.debug.debug("* "+self.myInfo+" -- reset_data",5)
@@ -62,6 +63,7 @@ class Job_trace:
         self.debug.line(4)
         i = 0
         j = 0
+        x = 0
         while (i<self.read_num or self.read_num<=0):
             tempStr = jobFile.readline()
             if not tempStr :    # break when no more line
@@ -103,7 +105,10 @@ class Job_trace:
                 self.job_submit_list.append(i)
                 self.debug.debug(temp_dataList,4)
                 #self.debug.debug("* "+str(tempInfo),4)
-                i += 1      
+                i += 1    
+                if (i>=x*5000):
+                    x += 1
+                    print i  
             j += 1
             
         self.debug.line(4)
@@ -126,7 +131,12 @@ class Job_trace:
         self.debug.line(4)
         jobFile.close()
         self.start_offset_A = config_data['start_offset']
-        self.start_date = config_data['date']
+        try:
+            self.start_date = datetime.strptime(config_data['date'], "%m/%d/%Y %H:%M:%S")
+        except:
+            self.start_date = datetime.now()
+            
+        self.time_zone = config_data['tzone']
         
     
     def import_job_data (self, job_data):
@@ -171,6 +181,7 @@ class Job_trace:
                             'score':0,\
                             'state':0,\
                             'happy':-1,\
+                            'nodeList':[],\
                             'estStart':-1}
                 self.jobTrace=[].append(tempInfo)
                 self.job_submit_list.append(i)
@@ -197,6 +208,12 @@ class Job_trace:
     def wait_size (self):
         #self.debug.debug("* "+self.myInfo+" -- wait_size",6)
         return self.job_wait_size
+    
+    def get_start_date(self):
+        return self.start_date
+    
+    def get_virtual_start_time(self):
+        return self.start
     
     def refresh_score (self, score, job_index=None):
         #self.debug.debug("* "+self.myInfo+" -- refresh_score",5)
@@ -229,13 +246,14 @@ class Job_trace:
         self.job_wait_size += self.jobTrace[job_index]["reqProc"]
         return 1
     
-    def job_start (self, job_index, time):
+    def job_start (self, job_index, time, node_list):
         #self.debug.debug("* "+self.myInfo+" -- job_start",5)
         self.debug.debug(" "+"["+str(job_index)+"]"+" Req:"+str(self.jobTrace[job_index]['reqProc'])+" Run:"+str(self.jobTrace[job_index]['run'])+" ",4)
         self.jobTrace[job_index]["state"]=2
         self.jobTrace[job_index]['start']=time
         self.jobTrace[job_index]['wait']=time-self.jobTrace[job_index]['submit']
         self.jobTrace[job_index]['end'] = time+self.jobTrace[job_index]['run']
+        self.jobTrace[job_index]['nodeList'] = node_list
         self.job_wait_list.remove(job_index)
         self.job_run_list.append(job_index)
         self.job_wait_size -= self.jobTrace[job_index]["reqProc"]

@@ -8,13 +8,9 @@ class Filter_node:
         self.save = str(save)
         self.config = str(config)
         self.debug = debug
-        self.nodeNum = -1
-        self.nodeList=[]
-        
-        self.debug.line(4," ")
-        self.debug.line(4,"#")
-        self.debug.debug("# "+self.myInfo,1)
-        self.debug.line(4,"#")
+        self.nodeNum = []
+        self.nodeList={}
+        self.show_module_info()
         
         self.reset_config_data()
     
@@ -30,9 +26,13 @@ class Filter_node:
         if debug:
             self.debug = debug
         self.nodeNum = -1
-        self.nodeList=[]
+        self.nodeList={}
         
         self.reset_config_data()
+    
+    def show_module_info (self):
+        #self.debug.line(1," ")
+        self.debug.debug("-- "+self.myInfo,1)   
     
     def reset_config_data(self):
         self.debug.debug("* "+self.myInfo+" -- reset_config_data",5) 

@@ -8,6 +8,6 @@ path_out=Results/
 path_fmt=Fmt/
 path_debug=Debug/
 ext_jr=.rst
-ext_si=.ult
+ext_si=.uti
 ext_ai=.adp
 ext_debug=.log

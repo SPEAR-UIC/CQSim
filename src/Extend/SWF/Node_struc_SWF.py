@@ -6,7 +6,11 @@ import CqSim.Node_struc as Class_Node_struc
 
 __metaclass__ = type
 
-class Node_struc_SWF(Class_Node_struc.Node_struc):        
+class Node_struc_SWF(Class_Node_struc.Node_struc): 
+    def show_module_info (self):
+        self.myInfo += " [SWF]"
+        #self.debug.line(1," ")
+        self.debug.debug("-- "+self.myInfo,1)   
         
     def node_allocate(self, proc_num, job_index, start, end):
         #self.debug.debug("* "+self.myInfo+" -- node_allocate",5)

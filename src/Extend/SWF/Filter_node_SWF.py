@@ -3,6 +3,11 @@ import Filter.Filter_node as filter_node
 
 __metaclass__ = type
 class Filter_node_SWF(filter_node.Filter_node):
+    def show_module_info (self):
+        self.myInfo += " [SWF]"
+        #self.debug.line(1," ")
+        self.debug.debug("-- "+self.myInfo,1)   
+        
     def reset_config_data(self):
         self.config_start=';'
         self.config_sep='\\n'
@@ -18,7 +23,7 @@ class Filter_node_SWF(filter_node.Filter_node):
         nameList=[]
         nameList.append(["MaxNodes","node"])
         nameList.append(["MaxProcs","proc"])
-        regex_rest = " *:([^\\n]+)\\n"
+        regex_rest = " *: *([^\\n ]+)[\\n ]"
         regexList = []
         node_info={}
         
@@ -46,7 +51,9 @@ class Filter_node_SWF(filter_node.Filter_node):
                 break
         nodeFile.close()
         self.node_data_build(node_info)
-        self.nodeNum = len(self.nodeList)
+        self.nodeNum = {}
+        self.nodeNum['proc'] = node_info['proc']
+        self.nodeNum['node'] = node_info['node']
 
     def node_data_build(self,node_info):
         node_num = node_info['proc']

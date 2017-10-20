@@ -1,0 +1,11 @@
+adapt_data_name=win_size,check_size
+adapt_data_para=-1,-1
+check_data_name=ad_win
+check_data_para=1
+avg_uti=600,3600
+adapt_item=0,1,-1,-1,0
+adapt_item=0,1,1,1,2
+adapt_item=1,1,-2,-1,0
+adapt_item=1,1,2,1,2
+bound_item=0,1,6
+bound_item=1,1,6

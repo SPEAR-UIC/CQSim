@@ -1,2 +1,8 @@
-adapt_para=
-check_para=
+adapt_data_name=size
+adapt_data_para=-1
+check_data_name=ad_bf
+check_data_para=1
+avg_uti=600,3600
+adapt_item=0,1,-1,-1,0
+adapt_item=0,1,1,1,2
+bound_item=0,1,3

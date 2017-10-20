@@ -7,6 +7,11 @@ import Filter.Filter_job as filter_job
 __metaclass__ = type
 
 class Filter_job_SWF(filter_job.Filter_job):
+    def show_module_info (self):
+        self.myInfo += " [SWF]"
+        #self.debug.line(1," ")
+        self.debug.debug("-- "+self.myInfo,1)   
+        
     def reset_config_data(self):
         self.config_start=';'
         self.config_sep='\\n'
@@ -14,6 +19,7 @@ class Filter_job_SWF(filter_job.Filter_job):
         self.config_data=[]
         self.config_data.append({'name_config':'date','name':'StartTime','value':''})
         self.config_data.append({'name_config':'start_offset','name':None,'value':''})
+        self.config_data.append({'name_config':'tzone','name':None,'value':''})
     
     def read_job_trace(self):
         nr_sign =';'    # Not read sign. Mark the line not the job data
@@ -146,13 +152,35 @@ class Filter_job_SWF(filter_job.Filter_job):
                             con_data['value'] = temp_con_List[0]
                             break
                     
-                
         jobFile.close()
         self.jobNum = len(self.jobList)
+        self.config_set()
+    
+    def config_set(self):
+        date_regex = r'([^ ]+ +[^ ]+ +\d+ +\d+:\d+:\d+ +)([^ ]+)( +\d+)'
+        revised_tzone = ""
+        i = 0
+        while (i<len(self.config_data)):
+            if self.config_data[i]['name_config']=='date':
+                raw_date = self.config_data[i]['value']
+                temp_date_group = re.findall(date_regex,raw_date)
+                revised_date = temp_date_group[0][0]+temp_date_group[0][2]
+                revised_tzone = temp_date_group[0][1]
+                
+                temp_date = datetime.strptime(revised_date, "%a %b %d %H:%M:%S  %Y")
+                
+                if (self.sdate):
+                    temp_date = self.sdate
+                try:
+                    self.config_data[i]['value'] = temp_date.strftime("%m/%d/%Y %H:%M:%S")
+                except:
+                    self.config_data[i]['value'] = temp_date
+            elif self.config_data[i]['name_config']=='tzone':
+                self.config_data[i]['value'] = revised_tzone
+            i += 1
+        
     
     def input_check(self,jobInfo):
-        if (int(jobInfo['run'])>int(jobInfo['reqTime'])):
-            jobInfo['run']=jobInfo['reqTime']
         if (int(jobInfo['id'])<=0):
             return -2
         if (int(jobInfo['submit'])<0):
@@ -161,8 +189,15 @@ class Filter_job_SWF(filter_job.Filter_job):
             return -4  
         if (int(jobInfo['reqTime'])<=0):
             return -5
-        if (int(jobInfo['reqProc'])<=0):
+        if (int(jobInfo['usedProc'])<=0):
             return -6
+        if (int(jobInfo['reqProc'])<=0 or int(jobInfo['reqProc'])<int(jobInfo['usedProc'])):
+            jobInfo['reqProc']=jobInfo['usedProc']
+        if (self.max_node):
+            if (int(jobInfo['reqProc'])>self.max_node['proc']):
+                return -7
+        if (int(jobInfo['run'])>int(jobInfo['reqTime'])):
+            jobInfo['run']=jobInfo['reqTime']
         return 1
 
     def output_job_data(self):
