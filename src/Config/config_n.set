@@ -1,0 +1,13 @@
+pre_name=CQSIM_
+ext_fmt_j=.csv
+ext_fmt_n=.csv
+ext_fmt_j_c=.con
+ext_fmt_n_c=.con
+path_in=InputFiles/
+path_out=Results/
+path_fmt=Fmt/
+path_debug=Debug/
+ext_jr=.rst
+ext_si=.ult
+ext_ai=.adp
+ext_debug=.log
