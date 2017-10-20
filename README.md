@@ -1,1 +1,2 @@
-# CQSim
+# CQSim - A Trace-based Event-Driven Scheduling Simulator
+The simulator is written in Python, and is formed by several modules including job module, node module, scheduling policy module, etc. Each module is implemented as a class. Its design principles are reusability, extensibility, and efficiency. CQSim takes job events from a workload trace (e.g., the SWF format from the well-known Parallel Workload Archive at http://www.cs.huji.ac.il/labs/parallel/workload/). Based on the events, the simulator emulates job submission, allocation, and execution according to a specific scheduling policy. It was originally developed by Dongxu Ren and Wei Tang, and later was improved by Xu Yang at the SPEAR group. 
