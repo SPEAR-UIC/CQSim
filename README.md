@@ -1,5 +1,5 @@
 # CQSim - A Trace-based Event-Driven Scheduling Simulator
-This version was originally developed by Xingwu Zheng SPEAR group of Illinois Institute of Technology. 
+This version was originally developed by Xingwu Zheng, a PhD student of Illinois Institute of Technology. 
 
 The Plan-based scheduling is a plug-in for CQsim. Given the current system state consisting of the start time, the expected runtime, and 
 the resource usage for each running job, the plan-based scheduler should generate an execution plan for the jobs in the waiting queue that 
