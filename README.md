@@ -1,2 +1,11 @@
 # CQSim - A Trace-based Event-Driven Scheduling Simulator
-The simulator is written in Python, and is formed by several modules including job module, node module, scheduling policy module, etc. Each module is implemented as a class. Its design principles are reusability, extensibility, and efficiency. CQSim takes job events from a workload trace (e.g., the SWF format from the well-known Parallel Workload Archive at http://www.cs.huji.ac.il/labs/parallel/workload/). Based on the events, the simulator emulates job submission, allocation, and execution according to a specific scheduling policy. It was originally developed by Dongxu Ren and Wei Tang (version 1.0), and later was improved by Xu Yang (master branch) at the SPEAR group. 
+This version was originally developed by Xingwu Zheng SPEAR group of Illinois Institute of Technology. 
+
+The Plan-based scheduling is a plug-in for CQsim. Given the current system state consisting of the start time, the expected runtime, and 
+the resource usage for each running job, the plan-based scheduler should generate an execution plan for the jobs in the waiting queue that 
+assigns each waiting job a start time in order to minimize certain performance metric. Since the CQsim is queue-based scheduling, 
+the waiting jobs are extracted from the job execution plan to the execution queue sorted by their planned start times, allowing the HPC 
+system to start a job at the head of the executing queue when its planned start time arrives.
+
+The RS scheduling algorithm is for fair comparison as an alternative plan-based scheduling. The difference between RS and our plan-based 
+scheduling is the "annealing" part. The RS don't contain the temperature as the annealing, and would work as a local search algorithm.
