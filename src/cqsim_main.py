@@ -1,3 +1,4 @@
+import os
 import cqsim_path
 import IOModule.Debug_log as Class_Debug_log
 import IOModule.Output_log as Class_Output_log
@@ -33,6 +34,15 @@ def  cqsim_main(para_list):
     output_adapt = para_list['path_out'] + para_list['output'] + para_list['ext_ai']
     output_result = para_list['path_out'] + para_list['output'] + para_list['ext_jr']
     output_fn = {'sys':output_sys, 'adapt':output_adapt, 'result':output_result}
+
+    if not os.path.exists(para_list['path_fmt']):
+        os.makedirs(para_list['path_fmt'])
+
+    if not os.path.exists(para_list['path_out']):
+        os.makedirs(para_list['path_out'])
+
+    if not os.path.exists(para_list['path_debug']):
+        os.makedirs(para_list['path_debug'])
     
     # Debug
     print ".................... Debug"
