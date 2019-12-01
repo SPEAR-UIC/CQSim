@@ -61,14 +61,14 @@ class Filter_node:
     def output_node_data(self):
         self.debug.debug("* "+self.myInfo+" -- output_node_data",5) 
         if not self.save:
-            print "Save file not set!"
+            print("Save file not set!")
             return
         return
     
     def output_node_config(self):
         self.debug.debug("* "+self.myInfo+" -- output_node_config",5) 
         if not self.config:
-            print "Config file not set!"
+            print("Config file not set!")
             return
         return
     

@@ -66,7 +66,7 @@ class Filter_node_SWF(filter_node.Filter_node):
 
     def output_node_data(self):
         if not self.save:
-            print "Save file not set!"
+            print("Save file not set!")
             return
         
         sep_sign = ";"
@@ -86,7 +86,7 @@ class Filter_node_SWF(filter_node.Filter_node):
 
     def output_node_config(self):
         if not self.config:
-            print "Config file not set!"
+            print("Config file not set!")
             return
         
         format_equal = '='
