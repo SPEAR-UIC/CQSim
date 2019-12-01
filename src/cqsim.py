@@ -274,6 +274,14 @@ if __name__ == "__main__":
         help="system config file")
     p.add_option("-m", "--monitor", dest="monitor", type="int",\
         help="monitor interval time")
+
+    #41
+    p.add_option("-I", "--log_freq", dest="log_freq", type="int",\
+        help="log frequency")
+
+    p.add_option("-z", "--read_input_freq", dest="read_input_freq", type="int",\
+        help="read input frequency")
+        
         
     opts, args = p.parse_args()
 
@@ -311,15 +319,15 @@ if __name__ == "__main__":
         opts.node_struc = inputPara_sys["node_struc"]
         
     if not opts.job_trace and not opts.job_save and not inputPara_sys["job_trace"]:
-        print "Error: Please specify an original job trace or a formatted job data!"
+        print("Error: Please specify an original job trace or a formatted job data!")
         p.print_help()
         sys.exit()
     if not opts.node_struc and not opts.node_save and not inputPara_sys["node_struc"]:
-        print "Error: Please specify an original node structure or a formatted node data!"
+        print("Error: Please specify an original node structure or a formatted node data!")
         p.print_help()
         sys.exit()
     if not opts.alg and not inputPara_sys["alg"]:
-        print "Error: Please specify the algorithm element!"
+        print("Error: Please specify the algorithm element!")
         p.print_help()
         sys.exit()
         
@@ -343,6 +351,10 @@ if __name__ == "__main__":
         opts.ad_bf_para = []
     if not opts.ad_alg_para:
         opts.ad_alg_para = []
+    if not opts.log_freq:
+        opts.log_freq = 1
+    if not opts.read_input_freq:
+        opts.read_input_freq = 1000
     '''
     if not opts.job_save:
         print "Error: Please specify at least one node structure!"
@@ -390,6 +402,8 @@ if __name__ == "__main__":
     inputPara['config_n']=opts.config_n
     inputPara['config_sys']=opts.config_sys
     inputPara['monitor']=opts.monitor
+    inputPara['log_freq']=opts.log_freq
+    inputPara['read_input_freq']=opts.read_input_freq
 
     for item in inputPara_name:
         if not inputPara[item]:

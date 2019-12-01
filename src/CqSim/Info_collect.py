@@ -7,7 +7,7 @@ class Info_collect:
         self.myInfo = "Info Collect"
         self.alg_module = alg_module
         self.debug = debug
-        self.sys_info = []
+        #self.sys_info = []
         
         self.debug.line(4," ")
         self.debug.line(4,"#")
@@ -21,7 +21,7 @@ class Info_collect:
             self.alg_module = alg_module
         if debug:
             self.debug = debug
-        self.sys_information = []
+        #self.sys_info = []
         
     def info_collect(self, time, event, uti, waitNum = -1, waitSize = -1, inter = -1.0, extend = None):
         self.debug.debug("* "+self.myInfo+" -- info_collect",5)
@@ -29,11 +29,14 @@ class Info_collect:
         temp_info = {'date': event_date, 'time': time, 'event': event, 'uti': uti, 'waitNum': waitNum, \
                      'waitSize': waitSize, 'inter': inter, 'extend': extend}
         self.debug.debug("   "+str(temp_info),4) 
-        self.sys_info.append(temp_info)
-        
+        #self.sys_info.append(temp_info)
+        return temp_info
+    
+    '''
     def info_analysis(self):
         self.debug.debug("* "+self.myInfo+" -- info_analysis",5)
         return 1
+    
     
     def get_info(self, index):
         self.debug.debug("* "+self.myInfo+" -- get_info",6)
@@ -44,3 +47,4 @@ class Info_collect:
     def get_len(self):
         self.debug.debug("* "+self.myInfo+" -- get_len",6)
         return len(self.sys_info)
+    '''

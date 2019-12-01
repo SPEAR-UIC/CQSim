@@ -15,11 +15,16 @@ class Cqsim_sim:
         self.debug.line(4,"#")
         
         self.event_seq = []
-        self.event_pointer = 0
+        #self.event_pointer = 0
         self.monitor_start = 0
         self.current_event = None
+        #obsolete
         self.job_num = len(self.module['job'].job_info())
         self.currentTime = 0
+        #obsolete
+        self.read_job_buf_size = 100
+        self.read_job_pointer = 0 # next position in job list
+        self.previous_read_job_time = -1 # lastest read job submit time
         
         self.debug.line(4)
         for module_name in self.module:
@@ -39,21 +44,68 @@ class Cqsim_sim:
                
             
         self.event_seq = []
-        self.event_pointer = 0
+        #self.event_pointer = 0
         self.monitor_start = 0
         self.current_event = None
+        #obsolete
         self.job_num = len(self.module['job'].job_info())
         self.currentTime = 0
+        #obsolete
+        self.read_job_buf_size = 100
+        self.read_job_pointer = 0
+        self.previous_read_job_time = -1
         
     def cqsim_sim(self):
         #self.debug.debug("# "+self.myInfo+" -- cqsim_sim",5)
-        self.insert_event_job()
+        #self.insert_submit_events()
+        self.import_submit_events()
+        #self.insert_event_job()
         self.insert_event_extend()
         self.scan_event()
         self.print_result()
         self.debug.debug("------ Simulating Done!",2) 
+        self.debug.debug(lvl=1) 
         return
+
+    def import_submit_events(self):
+        # fread jobs to job list and buffer to event_list dynamically
+        if self.read_job_pointer < 0:
+            return -1
+        temp_return = self.module['job'].dyn_import_job_file()
+        i = self.read_job_pointer
+        #while (i < len(self.module['job'].job_info())):
+        while (i < self.module['job'].job_info_len()):
+            self.insert_event(1,self.module['job'].job_info(i)['submit'],2,[1,i])
+            self.previous_read_job_time = self.module['job'].job_info(i)['submit']
+            self.debug.debug("  "+"Insert job["+"2"+"] "+str(self.module['job'].job_info(i)['submit']),4)
+            i += 1
+        #print("Insert Jobs!")
+        if temp_return == None or temp_return < 0 :
+            self.read_job_pointer = -1
+            return -1
+        else:
+            self.read_job_pointer = i
+            return 0
+
+    #obsolete
+    def insert_submit_events(self):
+        # first read all jobs to job list, buffer to event_list dynamically
+        #self.debug.debug("# "+self.myInfo+" -- insert_event_job",5) 
+        if self.read_job_pointer < 0:
+            return -1
+        i = self.read_job_pointer
+        while (i < self.read_job_buf_size + self.read_job_pointer and i < self.job_num):
+            self.insert_event(1,self.module['job'].job_info(i)['submit'],2,[1,i])
+            self.previous_read_job_time = self.module['job'].job_info(i)['submit']
+            self.debug.debug("  "+"Insert job["+"2"+"] "+str(self.module['job'].job_info(i)['submit']),4)
+            i += 1
+        if i >= self.job_num:
+            self.read_job_pointer = -1
+        else:
+            self.read_job_pointer = i
+        return 0
     
+    #obsolete
     def insert_event_job(self):
         #self.debug.debug("# "+self.myInfo+" -- insert_event_job",5) 
         i = 0
@@ -70,6 +122,10 @@ class Cqsim_sim:
         temp_num = start/self.monitor
         temp_num = int(temp_num)
         temp_time = temp_num*self.monitor
+
+        #self.monitor_start=self.event_pointer
+        self.monitor_start=0
+
         i = 0
         while (temp_time < end):
             if (temp_time>=start):
@@ -87,7 +143,8 @@ class Cqsim_sim:
         temp_index = -1
         new_event = {"type":type, "time":time, "prio":priority, "para":para}
         if (type == 1):
-            i = self.event_pointer
+            #i = self.event_pointer
+            i = 0
             while (i<len(self.event_seq)):
                 if (self.event_seq[i]['time']==time):
                     if (self.event_seq[i]['prio']>priority):
@@ -112,11 +169,16 @@ class Cqsim_sim:
     
     def get_index_monitor (self):
         #self.debug.debug("# "+self.myInfo+" -- get_index_monitor",5) 
+        '''
         if (self.event_pointer>=self.monitor_start):
             self.monitor_start=self.event_pointer+1
         temp_mon = self.monitor_start
         self.monitor_start += 1
         return temp_mon
+        '''
+        self.monitor_start += 1
+        return self.monitor_start
+
     
     def scan_event(self):
        # self.debug.debug("# "+self.myInfo+" -- scan_event",5) 
@@ -124,14 +186,28 @@ class Cqsim_sim:
         self.debug.line(2,"=")
         self.debug.line(2,"=")
         self.current_event = None
-        while (self.event_pointer < len(self.event_seq)):
-            self.current_event = self.event_seq[self.event_pointer]
-            self.currentTime = self.current_event['time']
+        #while (self.event_pointer < len(self.event_seq) or self.read_job_pointer >= 0):
+        while (len(self.event_seq) > 0 or self.read_job_pointer >= 0):
+            #print('event_seq',len(self.event_seq))
+            if len(self.event_seq) > 0:
+                temp_current_event = self.event_seq[0]
+                temp_currentTime = temp_current_event['time']
+            else:
+                temp_current_event = None
+                temp_currentTime = -1
+            #if (temp_currentTime >= self.previous_read_job_time or self.event_pointer >= len(self.event_seq)) and self.read_job_pointer >= 0:
+            if (len(self.event_seq) == 0 or temp_currentTime >= self.previous_read_job_time) and self.read_job_pointer >= 0:
+                #print('insert_submit_events from scan_event',temp_currentTime >= self.previous_read_job_time,(self.event_pointer >= len(self.event_seq) and self.read_job_pointer >= 0))
+                #self.insert_submit_events()
+                self.import_submit_events()
+                continue
+            self.current_event = temp_current_event
+            self.currentTime = temp_currentTime
             if (self.current_event['type'] == 1):
                 self.debug.line(2," ") 
                 self.debug.line(2,">>>") 
                 self.debug.line(2,"--") 
-                print ("  Time: "+str(self.currentTime)) 
+                #print ("  Time: "+str(self.currentTime)) 
                 self.debug.debug("  Time: "+str(self.currentTime),2) 
                 self.debug.debug("   "+str(self.current_event),2)
                 self.debug.line(2,"--") 
@@ -148,7 +224,8 @@ class Cqsim_sim:
                 self.event_extend(self.current_event['para'])
             self.sys_collect()
             self.interface()
-            self.event_pointer += 1
+            #self.event_pointer += 1
+            del self.event_seq[0]
         self.debug.line(2,"=")
         self.debug.line(2,"=")
         self.debug.line(2," ")
@@ -173,8 +250,10 @@ class Cqsim_sim:
             self.finish(self.current_event['para'][1])
         self.score_calculate()
         self.start_scan()
-        if (self.event_pointer < len(self.event_seq)-1):
-            self.insert_event_monitor(self.currentTime, self.event_seq[self.event_pointer+1]['time'])
+        #if (self.event_pointer < len(self.event_seq)-1):
+        if (len(self.event_seq) > 1):
+            #self.insert_event_monitor(self.currentTime, self.event_seq[self.event_pointer+1]['time'])
+            self.insert_event_monitor(self.currentTime, self.event_seq[1]['time'])
         return
     
     def event_monitor(self, para_in = None):
@@ -199,6 +278,8 @@ class Cqsim_sim:
         self.debug.debug("[Finish]  "+str(job_index),3)
         self.module['node'].node_release(job_index,self.currentTime)
         self.module['job'].job_finish(job_index)
+        self.module['output'].print_result(self.module['job'], job_index)
+        self.module['job'].remove_job_from_dict(job_index)
         return
     
     def start(self, job_index):
@@ -293,6 +374,7 @@ class Cqsim_sim:
     
     def sys_collect(self):
         #self.debug.debug("# "+self.myInfo+" -- sys_collect",5) 
+        '''
         temp_inter = 0
         if (self.event_pointer+1<len(self.event_seq)):
             temp_inter = self.event_seq[self.event_pointer+1]['time'] - self.currentTime
@@ -306,11 +388,24 @@ class Cqsim_sim:
                 event_code='E'
         elif (self.event_seq[self.event_pointer]['type'] == 2):
             event_code='Q'
+        '''
+        temp_inter = 0
+        if (len(self.event_seq) > 1):
+            temp_inter = self.event_seq[1]['time'] - self.currentTime
+        temp_size = 0
         
-        self.module['info'].info_collect(time=self.currentTime, event=event_code,\
+        event_code=None
+        if (self.event_seq[0]['type'] == 1):
+            if (self.event_seq[0]['para'][0] == 1):   
+                event_code='S'
+            elif(self.event_seq[0]['para'][0] == 2):   
+                event_code='E'
+        elif (self.event_seq[0]['type'] == 2):
+            event_code='Q'
+        temp_info = self.module['info'].info_collect(time=self.currentTime, event=event_code,\
          uti=(self.module['node'].get_tot()-self.module['node'].get_idle())*1.0/self.module['node'].get_tot(),\
          waitNum=len(self.module['job'].wait_list()), waitSize=self.module['job'].wait_size(), inter=temp_inter)
-        self.print_sys_info(self.module['info'].get_info(self.module['info'].get_len()-1))
+        self.print_sys_info(temp_info)
         return
     
     def interface(self, sys_info = None):
@@ -335,5 +430,7 @@ class Cqsim_sim:
     
     def print_result(self):
         #self.debug.debug("# "+self.myInfo+" -- print_result",5) 
+        self.module['output'].print_sys_info()
+        self.debug.debug(lvl=1)
         self.module['output'].print_result(self.module['job'])
         
