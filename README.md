@@ -3,8 +3,9 @@ The simulator is written in Python, and is formed by several modules including j
 
 CQSim was originally developed by Dongxu Ren and Wei Tang (version 1.0) in 2011-2012, and later was improved by Xu Yang and Yuping Fan (master branch), all under the supervision of Zhiling Lan at the Illinois Institute of Technology (http://bluesky.cs.iit.edu/cqsim/).
 
-Note: if you use CQSim in your work, please cite the paper : X. Yang, Z. Zhou, S. Wallace, Z. Lan, W. Tang, S. Coghlan, and M. Papka, "Integrating Dynamic Pricing of Electricity into Energy Aware Scheduling for HPC Systems", Proc. of SC'13, 2013.
-
+Note: if you use CQSim in your work, please cite the following papers: 
+1. X. Yang, Z. Zhou, S. Wallace, Z. Lan, W. Tang, S. Coghlan, and M. Papka, "Integrating Dynamic Pricing of Electricity into Energy Aware Scheduling for HPC Systems", Proc. of SC'13, 2013.
+2. Y. Fan, Z. Lan, P. Rich, W. Allcock, M. Papka, B. Austin, and D. Paul, "Scheduling beyond CPUs for HPC", Proc. of HPDC'19, 2019.
 
 # Getting started: Run A Simple Example
 ```
