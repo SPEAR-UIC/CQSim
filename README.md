@@ -1,6 +1,8 @@
 # DRAS - Deep Reinforcement Learning Agent for Scheduling in HPC
 This is the implementation of DRAS in CQSim simulator.
+
 Please refer to the following paper for more details:
+
 Y. Fan, T. Childers, P. Rich, W. Allcock, M. Papka, and Z. Lan, "Deep Reinforcement Agent for Scheduling in HPC", Proc. of IPDPS'21, 2021.
 
 # Run A Simple Example
@@ -26,4 +28,4 @@ Run:
 python cqsim.py -j test.swf -n test.swf
 ```
 
-Output are in data/Results.
+Output are in ```data/Results```.
