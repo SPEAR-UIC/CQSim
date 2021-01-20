@@ -10,6 +10,7 @@ class Filter_node_SWF(filter_node.Filter_node):
         self.config_data=[]
         self.config_data.append({'name_config':'MaxNodes','name':'MaxNodes','value':''})
         self.config_data.append({'name_config':'MaxProcs','name':'MaxProcs','value':''})
+        self.config_data.append({'name_config':'BurstBuffer','name':'BurstBuffer','value':{}})
         
     def read_node_struc(self):
         nr_sign =';'    # Not read sign. Mark the line not the job data
@@ -66,7 +67,7 @@ class Filter_node_SWF(filter_node.Filter_node):
 
     def output_node_data(self):
         if not self.save:
-            print("Save file not set!")
+            print "Save file not set!"
             return
         
         sep_sign = ";"
@@ -86,7 +87,7 @@ class Filter_node_SWF(filter_node.Filter_node):
 
     def output_node_config(self):
         if not self.config:
-            print("Config file not set!")
+            print "Config file not set!"
             return
         
         format_equal = '='

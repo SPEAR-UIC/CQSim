@@ -1,6 +1,7 @@
 from datetime import datetime
 import time
 import re
+import copy
 
 import CqSim.Node_struc as Class_Node_struc
 
@@ -8,13 +9,18 @@ __metaclass__ = type
 
 class Node_struc_SWF(Class_Node_struc.Node_struc):        
         
-    def node_allocate(self, proc_num, job_index, start, end):
+    def node_allocate(self, proc_num, job_index, start, end, ran_vol):
         #self.debug.debug("* "+self.myInfo+" -- node_allocate",5)
-        if self.is_available(proc_num) == 0:
+        if self.is_available(proc_num,ran_vol) == 0:
             return 0
         self.idle -= proc_num
         self.avail = self.idle
-        temp_job_info = {'job':job_index, 'end': end, 'node': proc_num}
+
+        for i in range(len(self.ran_avail)):
+            self.ran_avail[i] -= ran_vol[i]
+        self.ran_idle = self.ran_avail
+
+        temp_job_info = {'job':job_index, 'end': end, 'node': proc_num, 'ran': ran_vol}
         j = 0
         is_done = 0
         temp_num = len(self.job_list)
@@ -51,15 +57,21 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
         while (j<temp_num):
             if (job_index==self.job_list[j]['job']):
                 temp_node = self.job_list[j]['node']
+                temp_ran_vol = self.job_list[j]['ran']
+                self.idle += temp_node
+                self.avail = self.idle
+
+                for i in range(len(self.ran_avail)):
+                    self.ran_avail[i] += temp_ran_vol[i]
+                self.ran_idle = self.ran_avail
+
+                self.job_list.pop(j)
+                self.debug.debug("  Release"+"["+str(job_index)+"]"+" Req:"+str(temp_node)+" Avail:"+str(self.avail)+" ",4)
                 break
             j += 1
-        self.idle += temp_node
-        self.avail = self.idle
-        self.job_list.pop(j)
-        self.debug.debug("  Release"+"["+str(job_index)+"]"+" Req:"+str(temp_node)+" Avail:"+str(self.avail)+" ",4)
         return 1
         
-    def pre_avail(self, proc_num, start, end = None):
+    def pre_avail(self, proc_num, ran_vol, start, end = None):
         #self.debug.debug("* "+self.myInfo+" -- pre_avail",6)
         #self.debug.debug("pre avail check: "+str(proc_num)+" (" +str(start)+";"+str(end)+")",6)
         if not end or end < start:
@@ -71,34 +83,44 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
             if (self.predict_node[i]['time']>=start and self.predict_node[i]['time']<end):
                 if (proc_num>self.predict_node[i]['avail']):
                     return 0
+                    for x,y in zip(ran_vol,self.predict_node[i]['ran_avail']):
+                        if x > y:
+                            return 0
             i += 1
         return 1
         
-    def reserve(self, proc_num, job_index, time, start = None, index = -1 ):
+    def reserve(self, proc_num, job_index, time, start = None, index = -1, ran_vol = []):
         #self.debug.debug("* "+self.myInfo+" -- reserve",5)
             
         temp_max = len(self.predict_node)
         if (start):
-            if (self.pre_avail(proc_num,start,start+time)==0):
+            #print(proc_num,ran_vol,start,start+time)
+            if (self.pre_avail(proc_num,ran_vol,start,start+time)==0):
                 return -1
-        else:
-            i = 0
-            j = 0
-            if (index >= 0 and index < temp_max):
-                i = index
-            elif(index >= temp_max):
-                return -1
-            
-            while (i<temp_max): 
-                if (proc_num<=self.predict_node[i]['avail']):
-                    j = self.find_res_place(proc_num,i,time)
-                    if (j == -1):
-                        start = self.predict_node[i]['time']
-                        break
-                    else:
-                        i = j + 1
+        #else:
+        i = 0
+        j = 0
+        if (index >= 0 and index < temp_max):
+            i = index
+        elif(index >= temp_max):
+            return -1
+        
+        while (i<temp_max): 
+            if (proc_num<=self.predict_node[i]['avail']):
+                for x,y in zip(ran_vol,self.predict_node[i]['ran_avail']):
+                    if x > y:
+                        return -1
+                j = self.find_res_place(proc_num,i,time,ran_vol)
+                if (j == -1):
+                    start = self.predict_node[i]['time']
+                    break
                 else:
-                    i += 1
+                    i = j + 1
+            else:
+                i += 1
+
+        if not start:
+            return -1
 
         end = start + time
         j = i
@@ -109,23 +131,28 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
             if (self.predict_node[j]['time']<end):
                 self.predict_node[j]['idle'] -= proc_num
                 self.predict_node[j]['avail'] = self.predict_node[j]['idle']
+                for x in range(len(self.predict_node[j]['ran_avail'])):
+                    self.predict_node[j]['ran_avail'][x] -= ran_vol[x]
+                #self.predict_node[j]['ran_avail'] -= ran_vol
                 j += 1
             elif (self.predict_node[j]['time']==end):
                 is_done = 1
                 break
             else:
                 self.predict_node.insert(j,{'time':end,\
-                 'idle':self.predict_node[j-1]['idle'], 'avail':self.predict_node[j-1]['avail']})
+                 'idle':self.predict_node[j-1]['idle'], 'avail':self.predict_node[j-1]['avail'], 'ran_avail':copy.deepcopy(self.predict_node[j-1]['ran_avail'])})
                 #self.debug.debug("xx   "+str(proc_num),4)
                 self.predict_node[j]['idle'] += proc_num
                 self.predict_node[j]['avail'] = self.predict_node[j]['idle']
+                for x in range(len(self.predict_node[j]['ran_avail'])):
+                    self.predict_node[j]['ran_avail'][x] += ran_vol[x]
+                #self.predict_node[j]['ran_avail'] += ran_vol
                 is_done = 1
-                
                 #self.debug.debug("xx   "+str(n)+"   "+str(k),4)
                 break
             
         if (is_done != 1):
-            self.predict_node.append({'time':end,'idle':self.tot,'avail':self.tot})
+            self.predict_node.append({'time':end,'idle':self.tot,'avail':self.tot,'ran_avail':copy.deepcopy(self.ran_vol_tot)})
                 
         self.predict_job.append({'job':job_index, 'start':start, 'end':end})
         '''
@@ -163,7 +190,7 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
         #self.debug.debug("* "+self.myInfo+" -- pre_reset",5)  
         self.predict_node = []
         self.predict_job = []
-        self.predict_node.append({'time':time, 'idle':self.idle, 'avail':self.avail})
+        self.predict_node.append({'time':time, 'idle':self.idle, 'avail':self.avail, 'ran_avail':copy.deepcopy(self.ran_avail)})
                             
                             
         temp_job_num = len(self.job_list)
@@ -181,10 +208,13 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
         while i< temp_job_num:
             if (self.predict_node[j]['time']!=self.job_list[i]['end'] or i == 0):
                 self.predict_node.append({'time':self.job_list[i]['end'],\
-                                    'idle':self.predict_node[j]['idle'], 'avail':self.predict_node[j]['avail']})
+                                    'idle':self.predict_node[j]['idle'], 'avail':self.predict_node[j]['avail'], 'ran_avail':copy.deepcopy(self.predict_node[j]['ran_avail'])})
                 j += 1
             self.predict_node[j]['idle'] += self.job_list[i]['node']
             self.predict_node[j]['avail'] = self.predict_node[j]['idle']
+            for x in range(len(self.predict_node[j]['ran_avail'])):
+                    self.predict_node[j]['ran_avail'][x] += self.job_list[i]['ran'][x]
+            #self.predict_node[j]['ran_avail'] += self.job_list[i]['ran']
             i += 1
         ''' 
         i = 0
@@ -198,7 +228,7 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
         return 1
         
     
-    def find_res_place(self, proc_num, index, time):
+    def find_res_place(self, proc_num, index, time, ran_vol):
         #self.debug.debug("* "+self.myInfo+" -- find_res_place",5)  
         if index>=len(self.predict_node):
             index = len(self.predict_node) - 1
@@ -210,7 +240,11 @@ class Node_struc_SWF(Class_Node_struc.Node_struc):
         while (i < temp_node_num):
             if (self.predict_node[i]['time']<end):
                 if (proc_num>self.predict_node[i]['avail']):
+                #if (proc_num>self.predict_node[i]['avail'] or ran_vol>self.predict_node[i]['ran_avail']):
                     #print "xxxxx   ",temp_node_num,proc_num,self.predict_node[i]
                     return i
+                for x,y in zip(ran_vol,self.predict_node[i]['ran_avail']):
+                    if x > y:
+                        return i
             i += 1
         return -1

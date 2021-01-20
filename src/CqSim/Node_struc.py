@@ -15,6 +15,12 @@ class Node_struc:
         self.tot = -1
         self.idle = -1
         self.avail = -1
+        self.ran_vol_tot = []
+        self.xpd_num = -1
+        self.ran_avail = []
+        self.ran_idle = []
+        self.xpd_idle_power = 1100*0.2
+        self.xpd_active_extra_power = 1100*0.8
         
         self.debug.line(4," ")
         self.debug.line(4,"#")
@@ -30,6 +36,10 @@ class Node_struc:
         self.tot = -1
         self.idle = -1
         self.avail = -1
+        self.ran_vol_tot = []
+        self.xpd_num = -1
+        self.ran_avail = []
+        self.ran_idle = []
         
     def read_list(self,source_str):
         #self.debug.debug("* "+self.myInfo+" -- read_list",5)
@@ -68,6 +78,12 @@ class Node_struc:
         self.tot = len(self.nodeStruc)
         self.idle = self.tot
         self.avail = self.tot
+
+        #self.ran_vol_tot = 1024*5
+        #self.xpd_num = 3
+        #self.ran_avail = self.ran_vol_tot
+        #self.ran_idle = self.ran_vol_tot
+
         self.debug.debug("  Tot:"+str(self.tot)+" Idle:"+str(self.idle)+" Avail:"+str(self.avail)+" ",4)
         return
         
@@ -84,6 +100,15 @@ class Node_struc:
                 break
             temp_dataList=re.findall(regex_str,tempStr)
             config_data[temp_dataList[0]]=temp_dataList[1]
+            if "BurstBuffer" in temp_dataList[0]:
+                #self.BurstBuffer_tot = int(temp_dataList[1])
+                #self.BurstBuffer_avail = self.BurstBuffer_tot
+                #print('temp_dataList[0]',temp_dataList[1].split(','))
+                for res_str in temp_dataList[1].split(','):
+                    vol = int(res_str)
+                    self.ran_vol_tot.append(vol)
+                    self.ran_avail.append(vol)
+                    self.ran_idle.append(vol)
             self.debug.debug(str(temp_dataList[0])+": "+str(temp_dataList[1]),4)
         self.debug.line(4)
         nodeFile.close()
@@ -110,11 +135,20 @@ class Node_struc:
         self.tot = len(self.nodeStruc)
         self.idle = self.tot
         self.avail = self.tot
+
+        #self.ran_vol_tot = 1024*5
+        #self.xpd_num = -1
+        #self.ran_avail = self.ran_vol_tot
+        #self.ran_idle = self.ran_vol_tot
+
         
-    def is_available(self, proc_num):
+    def is_available(self, proc_num, ran_vol=[]):
         #self.debug.debug("* "+self.myInfo+" -- is_available",6)
         result = 0
         if self.avail >= proc_num:
+            for x,y in zip(ran_vol,self.ran_avail):
+                if x > y:
+                    return 0
             result = 1
         self.debug.debug("[Avail Check] "+str(result),6)
         return result
@@ -130,8 +164,26 @@ class Node_struc:
     def get_avail(self):
         #self.debug.debug("* "+self.myInfo+" -- get_avail",6)
         return self.avail
+
+    def get_ran_vol_tot(self):
+        return self.ran_vol_tot
+
+    def get_ran_idle(self):
+        return self.ran_idle
+
+    def get_ran_avail(self):
+        return self.ran_avail
+
+    def get_xpd_num(self):
+        return self.xpd_num
+
+    def get_xpd_idle_power(self):
+        return self.xpd_idle_power
+
+    def get_xpd_active_extra_power(self):
+        return self.xpd_active_extra_power
         
-    def node_allocate(self, proc_num, job_index, start, end):
+    def node_allocate(self, proc_num, job_index, start, end, ran_vol):
         #self.debug.debug("* "+self.myInfo+" -- node_allocate",5)
         if self.is_available(proc_num) == 0:
             return 0
@@ -147,7 +199,11 @@ class Node_struc:
                 break
         self.idle -= proc_num
         self.avail = self.idle
-        temp_job_info = {'job':job_index, 'end': end, 'node': proc_num}
+
+        self.ran_idle -= ran_vol
+        self.ran_avail = self.ran_idle
+
+        temp_job_info = {'job':job_index, 'end': end, 'node': proc_num, 'ran': ran_vol}
         j = 0
         is_done = 0
         temp_num = len(self.job_list)
@@ -178,6 +234,10 @@ class Node_struc:
             return 0
         self.idle += i
         self.avail = self.idle
+
+        self.ran_idle += ran_vol
+        self.ran_avail = self.ran_idle
+
         j = 0
         temp_num = len(self.job_list)
         while (j<temp_num):
@@ -188,7 +248,7 @@ class Node_struc:
         self.debug.debug("  Release"+"["+str(job_index)+"]"+" Req:"+str(i)+" Avail:"+str(self.avail)+" ",4)
         return 1
         
-    def pre_avail(self, proc_num, start, end = None):
+    def pre_avail(self, proc_num, ran_vol, start, end = None):
         #self.debug.debug("* "+self.myInfo+" -- pre_avail",6)
         #self.debug.debug("pre avail check: "+str(proc_num)+" (" +str(start)+";"+str(end)+")",6)
         if not end or end < start:
@@ -198,17 +258,17 @@ class Node_struc:
         temp_job_num = len(self.predict_node)
         while (i < temp_job_num):
             if (self.predict_node[i]['time']>=start and self.predict_node[i]['time']<end):
-                if (proc_num>self.predict_node[i]['avail']):
+                if (proc_num>self.predict_node[i]['avail'] or ran_vol>self.predict_node[i]['ran_avail']):
                     return 0
             i += 1
         return 1
         
-    def reserve(self, proc_num, job_index, time, start = None, index = -1 ):
+    def reserve(self, proc_num, job_index, time, start = None, index = -1, ran_vol = 0):
         #self.debug.debug("* "+self.myInfo+" -- reserve",5)
             
         temp_max = len(self.predict_node)
         if (start):
-            if (self.pre_avail(proc_num,start,start+time)==0):
+            if (self.pre_avail(proc_num,ran_vol,start,start+time,)==0):
                 return -1
         else:
             i = 0
@@ -220,7 +280,7 @@ class Node_struc:
             
             while (i<temp_max): 
                 if (proc_num<=self.predict_node[i]['avail']):
-                    j = self.find_res_place(proc_num,i,time)
+                    j = self.find_res_place(proc_num,i,time,ran_vol)
                     if (j == -1):
                         start = self.predict_node[i]['time']
                         break
@@ -258,6 +318,7 @@ class Node_struc:
         start_index = j
         while (j < temp_max):
             if (self.predict_node[j]['time']<end):
+                self.predict_node[j]['ran_avail'] -= ran_vol
                 k = 0
                 n = 0
                 while k< self.tot and n < proc_num:
@@ -278,7 +339,7 @@ class Node_struc:
                     temp_list.append(self.predict_node[j-1]['node'][k])
                     k += 1
                 self.predict_node.insert(j,{'time':end, 'node':temp_list,\
-                                    'idle':self.predict_node[j-1]['idle'], 'avail':self.predict_node[j-1]['avail']})
+                                    'idle':self.predict_node[j-1]['idle'], 'avail':self.predict_node[j-1]['avail'], 'ran_avail':self.predict_node[j-1]['ran_avail']})
                 k = 0
                 n = 0
                 #self.debug.debug("xx   "+str(proc_num),4)
@@ -301,7 +362,7 @@ class Node_struc:
                 temp_list.append(-1)
                 k += 1
             self.predict_node.append({'time':end, 'node':temp_list,\
-                                'idle':self.tot, 'avail':self.tot})
+                                'idle':self.tot, 'avail':self.tot, 'ran_avail':self.ran_vol_tot})
                 
         self.predict_job.append({'job':job_index, 'start':start, 'end':end})
         '''
@@ -345,7 +406,7 @@ class Node_struc:
             temp_list.append(self.nodeStruc[i]['state'])
             i += 1
         self.predict_node.append({'time':time, 'node':temp_list,\
-                            'idle':self.idle, 'avail':self.avail})
+                            'idle':self.idle, 'avail':self.avail, 'ran_avail':self.ran_avail})
                             
         temp_job_num = len(self.job_list)
         i = 0
@@ -358,7 +419,7 @@ class Node_struc:
                     temp_list.append(self.predict_node[j]['node'][k])
                     k += 1
                 self.predict_node.append({'time':self.job_list[i]['end'], 'node':temp_list,\
-                                    'idle':self.predict_node[j]['idle'], 'avail':self.predict_node[j]['avail']})
+                                    'idle':self.predict_node[j]['idle'], 'avail':self.predict_node[j]['avail'], 'ran_avail':self.predict_node[j]['ran_avail']})
                 j += 1
             k=0
             while k< self.tot:
@@ -366,6 +427,7 @@ class Node_struc:
                     self.predict_node[j]['node'][k] = -1
                     self.predict_node[j]['idle'] += 1
                 k += 1
+            self.predict_node[j]['ran_avail'] += self.job_list[i]['ran_vol']
             i += 1
             self.predict_node[j]['avail'] = self.predict_node[j]['idle']
         '''
@@ -379,7 +441,7 @@ class Node_struc:
         return 1
         
     
-    def find_res_place(self, proc_num, index, time):
+    def find_res_place(self, proc_num, index, time, ran_vol):
         self.debug.debug("* "+self.myInfo+" -- find_res_place",5)  
         if index>=len(self.predict_node):
             index = len(self.predict_node) - 1
@@ -390,7 +452,7 @@ class Node_struc:
         
         while (i < temp_node_num):
             if (self.predict_node[i]['time']<end):
-                if (proc_num>self.predict_node[i]['avail']):
+                if (proc_num>self.predict_node[i]['avail'] or ran_vol>self.predict_node[i]['ran_avail']):
                     #print "xxxxx   ",temp_node_num,proc_num,self.predict_node[i]
                     return i
             i += 1

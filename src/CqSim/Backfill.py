@@ -65,16 +65,16 @@ class Backfill:
         self.debug.line(4,'.')
         '''
             
-        self.node_module.reserve(self.wait_job[0]['proc'], self.wait_job[0]['index'], self.wait_job[0]['run'])
+        self.node_module.reserve(self.wait_job[0]['proc'], self.wait_job[0]['index'], self.wait_job[0]['run'],ran_vol = self.wait_job[0]['reqRan'])
         i = 1
         job_num = len(self.wait_job)
         while (i < job_num):
             backfill_test = 0
-            backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'],\
+            backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'],self.wait_job[i]['reqRan'],\
                     self.current_para['time'], self.current_para['time']+self.wait_job[i]['run'])
             if (backfill_test == 1):
                 backfill_list.append(self.wait_job[i]['index'])
-                self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'])
+                self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'],ran_vol = self.wait_job[i]['reqRan'])
             i += 1
         return backfill_list
         
@@ -82,16 +82,16 @@ class Backfill:
         #self.debug.debug("* "+self.myInfo+" -- backfill_cons",5)
         backfill_list=[]
         self.node_module.pre_reset(self.current_para['time'])
-        self.node_module.reserve(self.wait_job[0]['proc'], self.wait_job[0]['index'], self.wait_job[0]['run'])
+        self.node_module.reserve(self.wait_job[0]['proc'], self.wait_job[0]['index'], self.wait_job[0]['run'],ran_vol = self.wait_job[0]['reqRan'])
         i = 1
         job_num = len(self.wait_job)
         while (i < job_num):
             backfill_test = 0
-            backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'],\
+            backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'],self.wait_job[i]['reqRan'],\
                     self.current_para['time'], self.current_para['time']+self.wait_job[i]['run'])
             if (backfill_test == 1):
                 backfill_list.append(self.wait_job[i]['index'])
-            self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'])
+            self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'],ran_vol = self.wait_job[i]['reqRan'])
             i += 1  
         return backfill_list
     

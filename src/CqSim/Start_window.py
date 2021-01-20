@@ -22,6 +22,7 @@ class Start_window:
             self.max_start_size = int(self.para_list[2])
         else:
             self.max_start_size = self.win_size
+
             
         self.temp_check_len = self.check_size_in
         

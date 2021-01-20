@@ -77,14 +77,14 @@ class Filter_job:
     def output_job_data(self):
         self.debug.debug("* "+self.myInfo+" -- output_job_data",5) 
         if not self.save:
-            print("Save file not set!")
+            print "Save file not set!"
             return
         return
     
     def output_job_config(self):
         self.debug.debug("* "+self.myInfo+" -- output_job_config",5) 
         if not self.config:
-            print("Config file not set!")
+            print "Config file not set!"
             return
         return
     
