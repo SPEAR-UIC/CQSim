@@ -76,7 +76,7 @@ class Job_trace:
         regex_str = "([^;\\n]*)[;\\n]"
         while (self.i<self.read_num or self.read_num<=0) and temp_n<self.read_input_freq:
             tempStr = self.jobFile.readline()
-            if not tempStr :    # break when no more line
+            if self.i==self.read_num-1 or not tempStr :    # break when no more line
                 self.jobFile.close()
                 return -1
                 #break
@@ -121,7 +121,7 @@ class Job_trace:
                 self.i += 1      
             self.j += 1
             temp_n += 1
-            return 0
+           return 0
     
     def import_job_file (self, job_file):
         #self.debug.debug("* "+self.myInfo+" -- import_job_file",5)
