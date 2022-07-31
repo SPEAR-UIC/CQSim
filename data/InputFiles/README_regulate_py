@@ -1,4 +1,4 @@
-regulate.py is to change job index to start with 0 so that can be consistent with CQSim design.
+regulate.py is to change job index to start with 0 so that it can be consistent with CQSim design.
 
 Usage:
 python regulate $original_swf_file  $output_swf_file
