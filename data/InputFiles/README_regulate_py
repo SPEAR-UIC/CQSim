@@ -1,0 +1,7 @@
+regulate.py is to change job index to start with 0 so that can be consistent with CQSim design.
+
+Usage:
+python regulate $original_swf_file  $output_swf_file
+
+Example:
+python regulate.py SDSC-SP2-1998-4.2-cln.swf SDSC-SP2-1998-4.2-cln_regulate.swf
