@@ -4,7 +4,7 @@ import sys
 def main():
     args = sys.argv
     fileName = args[1]
-    newFileName = "".join(fileName.split(".")[:-1]) + "_regulate.swf"
+    #newFileName = "".join(fileName.split(".")[:-1]) + "_regulate.swf"
     fin = open(args[1], 'r')
     fout = open(args[2], 'a')
     lines = fin.readlines()
