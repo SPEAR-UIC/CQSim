@@ -121,7 +121,7 @@ class Job_trace:
                 self.i += 1      
             self.j += 1
             temp_n += 1
-           return 0
+            return 0
     
     def import_job_file (self, job_file):
         #self.debug.debug("* "+self.myInfo+" -- import_job_file",5)
