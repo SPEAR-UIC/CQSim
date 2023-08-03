@@ -1,6 +1,6 @@
 # CQSim GUI
 
-The CQSim GUI is an interactive graphical user interface for CQSim, a simulation program. This GUI provides users with an alternative way to interact with CQSim instead of entering parameters through the terminal. Additionally, it offers the option to view real-time graph analysis while the simulation is running. The GUI allows users to select between graphing Utilization, Max Wait Time, or Average Wait Time of the simulation. It was implemented by Sean Dudo <seanpdudo@gmail.com> when Sean attended the NSF REU program at Illinois Tech in the summer of 2023.
+The CQSim GUI is an interactive graphical user interface for CQSim, a simulation program. This GUI provides users with an alternative way to interact with CQSim instead of entering parameters through the terminal. Additionally, it offers the option to view real-time graph analysis while the simulation is running. The GUI allows users to select between graphing Utilization, Max Wait Time, or Average Wait Time of the simulation. It was implemented by Sean Dudo [<seanpdudo@gmail.com>] when Sean attended the NSF REU program at Illinois Tech in the summer of 2023.
 
 ## Running the GUI
 
