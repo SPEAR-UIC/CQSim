@@ -1,0 +1,9 @@
+This is a list of the current bugs that are known in the GUI
+
+BUG LIST:
+
+- when hitting the Run Button, it will set up the graph but when the simulation runs, the graph is not updated. 
+  You can just press the back button and hit run again until it works.
+
+- Error with tkinter vars when you empty them. When you delete the parameters that ask for ints or doubles, the GUI will throw out an error
+  about not accepting empty strings in the vars. Restarting the GUI will reset this bug.

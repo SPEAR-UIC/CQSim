@@ -26,6 +26,7 @@ class Filter_job_SWF(filter_job.Filter_job):
 
         nr_sign =';'    # Not read sign. Mark the line not the job data
         sept_sign =' '   # The sign seperate data in a line
+        tab_sign = '\t' # The sign separate data in line sometimes?
         
         jobFile = open(self.trace,'r')
         min_sub = -1
@@ -64,7 +65,7 @@ class Filter_job_SWF(filter_job.Filter_job):
                     for i in range(strNum):
                         if (tempStr[i] == '\n'):
                             break
-                        if (tempStr[i] == sept_sign):
+                        if (tempStr[i] == sept_sign or tempStr[i] == tab_sign):
                             if (newWord == 0):
                                 newWord = 1
                                 k = k+1
