@@ -1,6 +1,8 @@
 import IOModule.Log_print as Log_print
-
+import sys
 __metaclass__ = type
+
+time_stamps = []
 
 class Cqsim_sim:
     def __init__(self, module, debug = None, monitor = None):
@@ -31,7 +33,7 @@ class Cqsim_sim:
             temp_name = self.module[module_name].myInfo
             self.debug.debug(temp_name+" ................... Load",4)
             self.debug.line(4)
-        
+
     def reset(self, module = None, debug = None, monitor = None):
         #self.debug.debug("# "+self.myInfo+" -- reset",5)
         if module:
@@ -58,20 +60,31 @@ class Cqsim_sim:
     def cqsim_sim(self):
         #self.debug.debug("# "+self.myInfo+" -- cqsim_sim",5)
         #self.insert_submit_events()
-        self.import_submit_events()
+        yield from self.import_submit_events()
         #self.insert_event_job()
         self.insert_event_extend()
-        self.scan_event()
+        yield from self.scan_event()
         self.print_result()
         self.debug.debug("------ Simulating Done!",2) 
-        self.debug.debug(lvl=1) 
+        self.debug.debug(lvl=1)
+
+        #file = open('time_stamps.txt', 'w')
+        #for element in self.time_stamps:
+        #    print(element)
+        #    file.write((str)(element))
+        #    file.write("\n")
+        #file.close()
+
         return
 
     def import_submit_events(self):
         # fread jobs to job list and buffer to event_list dynamically
         if self.read_job_pointer < 0:
             return -1
-        temp_return = self.module['job'].dyn_import_job_file()
+        temp_return = -2
+        while temp_return == -2:
+            yield 0
+            temp_return = self.module['job'].dynamic_read_job_file()
         i = self.read_job_pointer
         #while (i < len(self.module['job'].job_info())):
         while (i < self.module['job'].job_info_len()):
@@ -86,34 +99,6 @@ class Cqsim_sim:
         else:
             self.read_job_pointer = i
             return 0
-
-    #obsolete
-    def insert_submit_events(self):
-        # first read all jobs to job list, buffer to event_list dynamically
-        #self.debug.debug("# "+self.myInfo+" -- insert_event_job",5) 
-        if self.read_job_pointer < 0:
-            return -1
-        i = self.read_job_pointer
-        while (i < self.read_job_buf_size + self.read_job_pointer and i < self.job_num):
-            self.insert_event(1,self.module['job'].job_info(i)['submit'],2,[1,i])
-            self.previous_read_job_time = self.module['job'].job_info(i)['submit']
-            self.debug.debug("  "+"Insert job["+"2"+"] "+str(self.module['job'].job_info(i)['submit']),4)
-            i += 1
-        if i >= self.job_num:
-            self.read_job_pointer = -1
-        else:
-            self.read_job_pointer = i
-        return 0
-    
-    #obsolete
-    def insert_event_job(self):
-        #self.debug.debug("# "+self.myInfo+" -- insert_event_job",5) 
-        i = 0
-        while (i < self.job_num):
-            self.insert_event(1,self.module['job'].job_info(i)['submit'],2,[1,i])
-            self.debug.debug("  "+"Insert job["+"2"+"] "+str(self.module['job'].job_info(i)['submit']),4)
-            i += 1
-        return
     
     def insert_event_monitor(self, start, end):
         #self.debug.debug("# "+self.myInfo+" -- insert_event_monitor",5) 
@@ -199,7 +184,7 @@ class Cqsim_sim:
             if (len(self.event_seq) == 0 or temp_currentTime >= self.previous_read_job_time) and self.read_job_pointer >= 0:
                 #print('insert_submit_events from scan_event',temp_currentTime >= self.previous_read_job_time,(self.event_pointer >= len(self.event_seq) and self.read_job_pointer >= 0))
                 #self.insert_submit_events()
-                self.import_submit_events()
+                yield from self.import_submit_events()
                 continue
             self.current_event = temp_current_event
             self.currentTime = temp_currentTime
@@ -271,15 +256,20 @@ class Cqsim_sim:
         #self.debug.debug("# "+self.myInfo+" -- submit",5) 
         self.debug.debug("[Submit]  "+str(job_index),3)
         self.module['job'].job_submit(job_index)
+        global time_stamps
+        time_stamps.append([self.currentTime, 0, job_index])
         return
     
     def finish(self, job_index):
         #self.debug.debug("# "+self.myInfo+" -- finish",5) 
         self.debug.debug("[Finish]  "+str(job_index),3)
+        # print('Finish: ', job_index, file=sys.stderr)
         self.module['node'].node_release(job_index,self.currentTime)
         self.module['job'].job_finish(job_index)
         self.module['output'].print_result(self.module['job'], job_index)
         self.module['job'].remove_job_from_dict(job_index)
+        global time_stamps
+        time_stamps.append([self.currentTime, 2, job_index])
         return
     
     def start(self, job_index):
@@ -289,6 +279,8 @@ class Cqsim_sim:
          self.currentTime, self.currentTime + self.module['job'].job_info(job_index)['reqTime'])
         self.module['job'].job_start(job_index, self.currentTime)
         self.insert_event(1,self.currentTime+self.module['job'].job_info(job_index)['run'],1,[2,job_index])
+        global time_stamps
+        time_stamps.append([self.currentTime, 1, job_index])
         return
     
     def score_calculate(self):

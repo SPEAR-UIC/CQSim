@@ -1,3 +1,4 @@
+import pandas as pd
 import IOModule.Log_print as Log_print
 
 __metaclass__ = type
@@ -9,8 +10,25 @@ class Output_log:
         self.sys_info_buf = []
         self.job_buf = []
         self.log_freq = log_freq
+        self.job_turnarounds = {}
+        self.results = []
         #print('log_freq+++++++',self.log_freq)
         self.reset_output()
+        self.pipe_connection = None
+        self.use_pipe = False
+
+    def send_result_to_pipe(self, pipe_connection):
+        # self.use_pipe = True
+        # self.pipe_connection = pipe_connection
+        for result in self.results:
+            pipe_connection.send(result)
+
+
+    
+    def disable(self):
+        self.sys_info.disable()
+        self.adapt_info.disable()
+        self.job_result.disable()
     
     def reset(self, output = None, log_freq = 1):
         if output:
@@ -123,10 +141,30 @@ class Output_log:
                 context += str(temp_job['start'])
                 context += sep_sign
                 context += str(temp_job['end'])
+                self.results.append(context)
                 self.job_result.log_print(context,1)
+                # if self.use_pipe:
+                #     self.pipe_connection.send(context)
             self.job_result.file_close()
             self.job_buf = []
-    
+
+    def print_saved_results(self):
+        self.job_result.file_open()
+        for result in self.results:
+            self.job_result.log_print(result,1)
+        self.job_result.file_close()
+
+
+    def get_result(self):
+        '''
+        Returns a data frame with results after simulation
+        '''
+        column_names = ['id', 'proc1', 'proc2','walltime', 'run', 'wait', 'submit', 'start', 'end']
+        presults = [result.split(';') for result in self.results]
+        df = pd.DataFrame(presults, columns = column_names) 
+        df = df.astype(float)
+        return df
+
     '''
     def print_result(self, job_module):
         sep_sign=";"

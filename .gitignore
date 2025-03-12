@@ -1,0 +1,6 @@
+__pycache__
+preprocessing/data
+preprocessing/output
+data/Results/*
+reproduced_results*
+.DS_Store

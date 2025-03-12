@@ -47,6 +47,19 @@ class Filter_node_SWF(filter_node.Filter_node):
         nodeFile.close()
         self.node_data_build(node_info)
         self.nodeNum = len(self.nodeList)
+    
+    def static_node_struc(self, num_proc):
+        nr_sign =';'    # Not read sign. Mark the line not the job data
+        sep_sign =' '   # The sign seperate data in a line
+        sep_sign2 =':'   # The sign seperate data in a line
+        nameList=[]
+        nameList.append(["MaxNodes","node"])
+        nameList.append(["MaxProcs","proc"])
+        regex_rest = " *:([^\\n]+)\\n"
+        regexList = []
+        node_info={'proc': num_proc}
+        self.node_data_build(node_info)
+        self.nodeNum = len(self.nodeList)
 
     def node_data_build(self,node_info):
         node_num = node_info['proc']

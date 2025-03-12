@@ -14,6 +14,9 @@ class Debug_log:
         self.log_freq = log_freq
         self.reset_log()
     
+    def disable(self):
+        self.debugFile.disable()
+
     def reset(self, lvl=None, path=None, log_freq = 1):
         if lvl:
             self.lvl = lvl

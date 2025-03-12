@@ -1,4 +1,5 @@
 import optparse
+import argparse
 import os
 import sys
 from datetime import datetime
@@ -142,7 +143,6 @@ def read_config(fileName):
     
     return readData
 
-
 if __name__ == "__main__":
     
     temp_opt={'alg':[],'alg_sign':[],'bf_para':[],'win_para':[],'ad_win_para':[],'ad_bf_para':[],'ad_alg_para':[]}
@@ -281,9 +281,15 @@ if __name__ == "__main__":
 
     p.add_option("-z", "--read_input_freq", dest="read_input_freq", type="int",\
         help="read input frequency")
-        
+    
+    #42
+    p.add_option("--stream", action="store_true", dest="stream", help="Enable streaming mode")
         
     opts, args = p.parse_args()
+
+    if opts.stream:
+        print('--- CQSim - Stream ---')
+        exit(0)
 
     inputPara={}
     inputPara_sys={}

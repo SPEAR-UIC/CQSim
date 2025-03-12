@@ -16,7 +16,6 @@ import Extend.SWF.Filter_node_SWF as filter_node_ext
 import Extend.SWF.Node_struc_SWF as node_struc_ext
 
 
-
 def  cqsim_main(para_list):
     print("....................")
     for item in para_list :
@@ -53,14 +52,19 @@ def  cqsim_main(para_list):
     #module_debug.start_debug()
     
     # Job Filter
+    # Notes: 
+    # creates file data/Fmt/test.csv -- later used by the Job Trace module
     print(".................... Job Filter")
     module_filter_job = filter_job_ext.Filter_job_SWF(trace=trace_name, save=save_name_j, config=config_name_j, debug=module_debug)
     module_filter_job.feed_job_trace()
+    # module_filter_job.feed_job_trace_with_mask([1,0,1,1,1,1,1,1,1])
     #module_filter_job.read_job_trace()
     #module_filter_job.output_job_data()
     module_filter_job.output_job_config()
     
     # Node Filter
+    # Notes: 
+    # creates file data/Fmt/test_node.csv -- later used by the Node Structure module
     print(".................... Node Filter")
     module_filter_node = filter_node_ext.Filter_node_SWF(struc=struc_name, save=save_name_n, config=config_name_n, debug=module_debug)
     module_filter_node.read_node_struc()
@@ -107,3 +111,5 @@ def  cqsim_main(para_list):
     module_sim = Class_Cqsim_sim.Cqsim_sim(module=module_list, debug=module_debug, monitor = para_list['monitor'])
     module_sim.cqsim_sim()
     #module_debug.end_debug()
+    
+    return Class_Cqsim_sim.time_stamps

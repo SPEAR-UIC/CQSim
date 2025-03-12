@@ -2,78 +2,228 @@ from datetime import datetime
 from functools import cmp_to_key 
 import time
 import re
+import os
 
 __metaclass__ = type
 
 class Job_trace:
-    def __init__(self, start=-1, num=-1, anchor=-1, density=1.0, read_input_freq = 1000, debug=None):
+    """
+    - Receive formatted job trace file name or the formatted job trace data. 
+    - Read the temp file and store the data into a list.
+    - Provide all the job trace operations, and keep tracing the information of every job.
+    """
+    def __init__(
+            self,
+            job_file_path,
+            debug,
+            real_start_time = -1,
+            virtual_start_time = 0.0, 
+            density=1.0, 
+            mask = None,
+            max_lines = 8000,
+            job_runtime_scale_factor = 1.0,
+            job_walltime_scale_factor = 1.0):
+        """Initialize the Job Trace Module.
+
+        Args:
+            job_file_path: Path of the job file to read from.
+            real_start_time: Real start time for the simulator.
+            virutual_start_time: Virtual start time for the simulator.
+            density: The scale of the interval between each job.
+            debug: The debug module
+            mask: Mask for the job trace
+            max_lines: The maximum number of lines to read from job file.
+            job_runtime_scaler: Factor to scale the job runtimes by.
+            job_walltime_scaler: Factor to scale the job walltimes by.
+
+        Attributes:
+            myInfo: Module information.
+            real_start_time: Real start time of the trace.
+            virtual_start_time: Virutal start time for the simulator.
+            density: The scale of the interval between each job.
+            debug: The debug module.
+            mask: A binary mask for excluding or including jobs.
+            max_lines: The maximum number of lines to read from job file.
+            cluster_speed: The speed of the cluster.
+            jobTrace: Dictionary to keep track of the jobs while simulation.
+            job_file_path: The CSV file to read the job submit events from.
+            job_fd: file descriptior for the job file read at job_file_path.
+            job_counter: counter for the jobs read, also used to assign internal ids.
+            job_wait_size: ???
+            job_submit_list: ???
+            job_wait_list: ???
+            job_run_list: ???
+            line_number: The line number in the job file.
+            job_counter: Counter for the jobs read.
+            num_delete_jobs: ???
+            job_skips: Counter for the number of jobs skipped (likely because mask was set to 0)
+            job_file_offset: offset in number of bytes in the job file for the next job.
+        """
+
         self.myInfo = "Job Trace"
-        self.start = start
-        self.start_offset_A = 0.0
-        self.start_offset_B = 0.0
-        self.start_date = ""
-        self.anchor = anchor
-        self.read_num = num
+        self.real_start_time = real_start_time
+        self.virtual_start_time = virtual_start_time
         self.density = density
         self.debug = debug
+        self.mask = mask
+        self.max_lines = max_lines
+        self.job_runtime_scale_factor = job_runtime_scale_factor
+        self.job_walltime_scale_factor = job_walltime_scale_factor
         self.jobTrace={}
-        self.jobFile = None
-        self.read_input_freq = read_input_freq
-        self.num_delete_jobs = 0
-
-        self.debug.line(4," ")
-        self.debug.line(4,"#")
-        self.debug.debug("# "+self.myInfo,1)
-        self.debug.line(4,"#")
-        
-        self.reset_data()
-        
-    def reset(self, start=None, num=None, anchor=None, density=None, read_input_freq = None, debug=None):
-        #self.debug.debug("* "+self.myInfo+" -- reset",5)
-        if start:
-            self.anchor = start
-            self.start_offset_A = 0.0
-            self.start_offset_B = 0.0
-        if num:
-            self.read_num = num
-        if anchor:
-            self.anchor = anchor
-        if density:
-            self.density = density
-        if debug:
-            self.debug = debug
-        if read_input_freq:
-            self.read_input_freq = read_input_freq
-        self.jobTrace={}
-        self.jobFile = None
-        self.reset_data()
-            
-    def reset_data(self):
-        #self.debug.debug("* "+self.myInfo+" -- reset_data",5)
+        self.job_file_path = job_file_path
+        self.job_fd =  open(self.job_file_path,'r')
         self.job_wait_size = 0
         self.job_submit_list=[]
         self.job_wait_list=[]
         self.job_run_list=[]
-        #self.job_done_list=[]
+        self.line_number = 0
+        self.job_counter = 0
         self.num_delete_jobs = 0
+        self.job_skips = 0
+        self.job_file_offest = 0
 
-    def initial_import_job_file(self, job_file):
-        self.temp_start=self.start
-        #regex_str = "([^;\\n]*)[;\\n]"
-        self.jobFile = open(job_file,'r')
-        self.min_sub = -1
-        self.jobTrace={}
-        self.reset_data()
-        self.debug.line(4)
-        self.i = 0
-        self.j = 0
-        #self.dyn_import_job_file()
+
+        # If the mask is not defnied, initialze the mask to read all jobs.
+        if self.mask == None:
+            self.mask = [1 for _ in range(0, max_lines)]
+        
+        # If the mask is larger than max lines, truncate it.
+        if len(self.mask) > self.max_lines:
+            self.mask = self.mask[:self.max_lines]
+
+    def update_max_lines(self, max_lines, default_bit = 1):
+        self.max_lines = max_lines
+
+        # If the mask is larger than max_lines, truncate it.
+        if len(self.mask) > self.max_lines:
+            self.mask = self.mask[:self.max_lines]
+
+        # If the mask is smaller than max_lines, expand the mask.
+        if len(self.mask) < self.max_lines:
+            difference = self.max_lines - len(self.mask)
+            for i in range(difference):
+                self.mask.append(default_bit)
+
+    def disable_job(self, line_counter):
+        if self.line_number < len(self.mask):
+            self.mask[line_counter] = 0
+    
+    def enable_job(self, line_counter):
+        if self.line_number < len(self.mask):
+            self.mask[line_counter] = 1 
+
+    def read_next_job(self,):
+        """
+        Reads the next job in the job file, at the offset kept by the class.
+
+        Args:
+        Returns:
+            str: String of job data
+        """
+        line = ""
+        with open(self.job_file_path, 'r') as f:
+            f.seek(self.job_file_offest)
+            line = f.readline()
+            self.job_file_offest = f.tell()
+        return line
+
+
+
+    def dynamic_read_job_file(self):
+        """
+        Reads the next line from the job file, skips lines accroding to the mask.
+        The line is parsed for job data and added to the job trace.
+        """
+        job_line = self.read_next_job()
+
+        # Check for end of file.
+        if not job_line:
+            self.job_fd.close()
+            return -1
+        
+        # Check for line number exceeding mask size.
+        if self.line_number >= len(self.mask):
+            return -1
+
+        # Skip the line if the mask is 0, yield again in parent on -2
+        if self.mask[self.line_number] == 0:
+            self.line_number += 1
+            self.job_skips += 1
+            return -2
+            
+
+        regex_str = "([^;\\n]*)[;\\n]"
+        job_data = re.findall(regex_str, job_line)
+        job_data = job_line.split(';')
+
+        
+        # If the real start time is not given, use the submit time of the first job.
+        if self.real_start_time == -1:
+            # Store the submit time of the first job.
+            if self.line_number == 0:
+                self.real_start_time = float(job_data[1])
+        job_info = {'id':int(job_data[0]),\
+                    'submit':self.density*(float(job_data[1])-self.real_start_time) + self.virtual_start_time,\
+                    'wait':float(job_data[2]),\
+                    'run':float(job_data[3]),\
+                    'usedProc':int(job_data[4]),\
+                    'usedAveCPU':float(job_data[5]),\
+                    'usedMem':float(job_data[6]),\
+                    'reqProc':int(job_data[7]),\
+                    'reqTime':float(job_data[8]),\
+                    'reqMem':float(job_data[9]),\
+                    'status':int(job_data[10]),\
+                    'userID':int(job_data[11]),\
+                    'groupID':int(job_data[12]),\
+                    'num_exe':int(job_data[13]),\
+                    'num_queue':int(job_data[14]),\
+                    'num_part':int(job_data[15]),\
+                    'num_pre':int(job_data[16]),\
+                    'thinkTime':int(job_data[17]),\
+                    'start':-1,\
+                    'end':-1,\
+                    'score':0,\
+                    'state':0,\
+                    'happy':-1,\
+                    'estStart':-1
+                }
+        
+        # Adjust the runtime and walltime according to the scaling factors.
+        job_info['run'] = job_info['run'] * self.job_runtime_scale_factor
+        job_info['reqTime'] = job_info['reqTime'] * self.job_walltime_scale_factor
+
+
+        # with open('job_module_log.txt', 'a') as f:
+        #     f.write('Scale factor runtime' + str(self.job_runtime_scale_factor) + '\n')
+        #     f.write('Scale factor walltime' + str(self.job_walltime_scale_factor) + '\n')
+        #     f.write(str(job_info) + '\n\n')
+
+        self.jobTrace[self.job_counter] = job_info
+        self.job_submit_list.append(self.job_counter)
+
+
+        self.line_number += 1
+        self.job_counter += 1
+        return 0
+
 
     def dyn_import_job_file(self):
+        """
+        [DEPRECATED]
+        Old dynamic job file import.
+        """
+
+        # Check if the job file is closed
         if self.jobFile.closed:
             return -1
+        
+        # Something regarding the read input frequency?
         temp_n = 0
+
+        # To read each line of the job file
         regex_str = "([^;\\n]*)[;\\n]"
+
+
         while (self.i<self.read_num or self.read_num<=0) and temp_n<self.read_input_freq:
             tempStr = self.jobFile.readline()
             if self.i==self.read_num-1 or not tempStr :    # break when no more line
@@ -82,15 +232,16 @@ class Job_trace:
                 #break
             if (self.j>=self.anchor):
                 temp_dataList=re.findall(regex_str,tempStr)
-                    
-                if (self.min_sub<0):
-                    self.min_sub=float(temp_dataList[1])
-                    if (self.temp_start < 0):
-                        self.temp_start = self.min_sub
-                    self.start_offset_B = self.min_sub-self.temp_start
-                    
+
+                if self.start == -1:
+                    if (self.min_sub<0):
+                        self.min_sub=float(temp_dataList[1])
+                        if (self.temp_start < 0):
+                            self.temp_start = self.min_sub
+                        self.start_offset_B = self.min_sub-self.temp_start
+                        
                 tempInfo = {'id':int(temp_dataList[0]),\
-                            'submit':self.density*(float(temp_dataList[1])-self.min_sub)+self.temp_start,\
+                            'submit':self.density*(float(temp_dataList[1])-self.start),\
                             'wait':float(temp_dataList[2]),\
                             'run':float(temp_dataList[3]),\
                             'usedProc':int(temp_dataList[4]),\
@@ -122,67 +273,6 @@ class Job_trace:
             self.j += 1
             temp_n += 1
             return 0
-    
-    def import_job_file (self, job_file):
-        #self.debug.debug("* "+self.myInfo+" -- import_job_file",5)
-        temp_start=self.start
-        regex_str = "([^;\\n]*)[;\\n]"
-        jobFile = open(job_file,'r')
-        min_sub = -1
-        self.jobTrace={}
-        self.reset_data()
-        
-        self.debug.line(4)
-        i = 0
-        j = 0
-        while (i<self.read_num or self.read_num<=0):
-            tempStr = jobFile.readline()
-            if not tempStr :    # break when no more line
-                break
-            if (j>=self.anchor):
-                temp_dataList=re.findall(regex_str,tempStr)
-                    
-                if (min_sub<0):
-                    min_sub=float(temp_dataList[1])
-                    if (temp_start < 0):
-                        temp_start = min_sub
-                    self.start_offset_B = min_sub-temp_start
-                    
-                tempInfo = {'id':int(temp_dataList[0]),\
-                            'submit':self.density*(float(temp_dataList[1])-min_sub)+temp_start,\
-                            'wait':float(temp_dataList[2]),\
-                            'run':float(temp_dataList[3]),\
-                            'usedProc':int(temp_dataList[4]),\
-                            'usedAveCPU':float(temp_dataList[5]),\
-                            'usedMem':float(temp_dataList[6]),\
-                            'reqProc':int(temp_dataList[7]),\
-                            'reqTime':float(temp_dataList[8]),\
-                            'reqMem':float(temp_dataList[9]),\
-                            'status':int(temp_dataList[10]),\
-                            'userID':int(temp_dataList[11]),\
-                            'groupID':int(temp_dataList[12]),\
-                            'num_exe':int(temp_dataList[13]),\
-                            'num_queue':int(temp_dataList[14]),\
-                            'num_part':int(temp_dataList[15]),\
-                            'num_pre':int(temp_dataList[16]),\
-                            'thinkTime':int(temp_dataList[17]),\
-                            'start':-1,\
-                            'end':-1,\
-                            'score':0,\
-                            'state':0,\
-                            'happy':-1,\
-                            'estStart':-1}
-                #self.jobTrace.append(tempInfo)
-                self.jobTrace[self.i] = tempInfo
-                self.job_submit_list.append(i)
-                self.debug.debug(temp_dataList,4)
-                #self.debug.debug("* "+str(tempInfo),4)
-                i += 1      
-            j += 1
-            
-        self.debug.line(4)
-        jobFile.close()
-        #print('jobFile',jobFile,jobFile.closed)
     
     def import_job_config (self, config_file):
         #self.debug.debug("* "+self.myInfo+" -- import_job_config",5)
@@ -312,6 +402,9 @@ class Job_trace:
         del self.jobTrace[job_index]
         self.num_delete_jobs += 1
         #print('jobTrace.keys',self.jobTrace.keys())
+
+    def close_file_job_file(self):
+        self.job_fd.close()
     
     
     
