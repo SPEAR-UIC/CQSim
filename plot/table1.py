@@ -9,20 +9,15 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 import os
 
-
 output = 'reproduced/experiments'
-
-###################################################################
-# Wait Time vs Node Count (Binned)
-###################################################################
-exp1c1 ='../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_1/Results/theta_2022.rst',
-exp1c2 = '../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_2/Results/theta_2022.rst',
-exp2c1 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_1/Results/theta_2022.rst',
-exp2c2 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_2/Results/theta_2022.rst',
-exp_1_name = "SGS-T",
-exp_2_name = "Random",
-fig_name = f'{output}/homo_avg_wait_vs_node.png',
-csv_name = f'{output}/homo_avg_wait_vs_node.csv'
+output = '.'
+exp1c1 ='../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_1/Results/theta_2022.rst'
+exp1c2 = '../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_2/Results/theta_2022.rst'
+exp2c1 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_1/Results/theta_2022.rst'
+exp2c2 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_2/Results/theta_2022.rst'
+exp_1_name = "SGS-T"
+exp_2_name = "Random"
+csv_name = f'{output}/table1.csv'
 
 # Read result files 
 c1 = read_rst(exp1c1)
@@ -74,7 +69,12 @@ y_range_overall = [
 ]
 y_offset_overall = (y_range_overall[1] - y_range_overall[0]) * 0.5  # 5% of the y-range
 
-data = {'Node Counts': labels}
+job_counts = []
+for label in labels:
+    count = len(exp1_net['proc_binned'][exp1_net['proc_binned'] == label])
+    job_counts.append(f"{count} ({count/total_jobs*100:.1f}%)")  # Add count and percentage
+
+data = {'Node Counts': labels, 'Job Count': job_counts}
 avg_wait_exp1 = []
 avg_wait_exp2 = []
 
@@ -90,23 +90,15 @@ data[exp_1_name] = avg_wait_exp1
 df = pd.DataFrame(data)
 
 # Add the overall average wait times
-df = pd.concat([df, pd.DataFrame({'Node Counts': ['Overall'], 
+df = pd.concat([df, pd.DataFrame({'Node Counts': ['Overall'],
+                                  'Job Count' : [total_jobs], 
                             exp_2_name: [mean_exp2_overall],
                             exp_1_name: [mean_exp1_overall]})])
-
-# Save the DataFrame to a CSV file
-df.to_csv(csv_name, index=False)
 
 # Calculate % improvement and job counts
 df['Percent Improvement'] = ((df[exp_2_name] - df[exp_1_name]) / df[exp_2_name]) * 100
 
-job_counts = []
-for label in labels:
-    count = len(exp1_net['proc_binned'][exp1_net['proc_binned'] == label])
-    job_counts.append(f"{count} ({count/total_jobs*100:.1f}%)")  # Add count and percentage
-job_counts.append(total_jobs)  # Add overall job count
-df['Job Count'] = job_counts
-
 # Save the updated DataFrame to a CSV file
 df = df.round(1) 
 df.to_csv(csv_name, index=False)
+
