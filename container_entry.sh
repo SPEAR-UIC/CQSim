@@ -16,12 +16,12 @@ cd ..
 ###########################################
 # Create the plots
 cd plot
-python3 case_study.py
-python3 experiments.py
+python3 plot_main.py
 
 cd ..
 
 ###########################################
 # Copy the reproduced results outside of container
+cp -r /cqsimplus/data /reproduced_results/
 cp -r /cqsimplus/plot/reproduced/experiments /reproduced_results/
 cp -r /cqsimplus/plot/reproduced/case_study /reproduced_results/

@@ -6,6 +6,8 @@ from table4 import table4
 # from table5 import 
 from figure_5_6 import *
 from figure7 import *
+from figure8 import *
+from table5 import table5
 
 
 output_exp = 'reproduced/experiments'
@@ -35,3 +37,6 @@ if __name__ == '__main__':
     figure7b()
     figure7c()
     figure7d()
+    figure8a()
+    figure8b()
+    table5()
