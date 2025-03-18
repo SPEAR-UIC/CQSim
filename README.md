@@ -51,7 +51,7 @@ For reproducing the results from the paper, a Dockerfile is provided that mimick
 
 - Step 1: Run `dos2unix reproduce.sh` and `dos2unix preprocessing/run.sh`. This is required for gitbash as windows requires a different new line character.
 
-- Step 3: Run `reproduce.sh` which will run all experiments in a docker container. At the end of execution, look for the folder `reproduced_results`. This folder will contain all table and graph data used in the paper.
+- Step 2: Run `reproduce.sh` which will run all experiments in a docker container. At the end of execution, look for the folder `reproduced_results`. This folder will contain all table and graph data used in the paper.
 
 Expect the script to run for a minimum of 50 mins to 1hr 15 mins depending on your machine
 
