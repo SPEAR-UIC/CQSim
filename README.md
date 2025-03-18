@@ -16,7 +16,7 @@ Public repository can be found at: https://github.com/SPEAR-UIC/CQSim/tree/CQSim
 * Michael E. Papka <papka@uic.edu>
 * Zhilling Lan <zlan@uic.edu>
 
-Contact for reproducibility: Yash Kurkure <ykurku2@uic.edu>clear
+Contact for reproducibility: Yash Kurkure <ykurku2@uic.edu>
 
 ## Requirements
 
