@@ -21,7 +21,7 @@ cd ..
 ###########################################
 # Create the plots
 cd plot
-# python3 plot_main.py
+python3 plot_main.py
 cd ..
 
 ###########################################
