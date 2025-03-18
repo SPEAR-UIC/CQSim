@@ -2,6 +2,8 @@ FROM fedora:40
 
 RUN dnf install -y ncurses python3-pip python3-pandas python3-tqdm python3-plotly
 
+RUN dnf install -y unzip
+
 RUN pip3 install dash
 
 RUN pip3 install kaleido
