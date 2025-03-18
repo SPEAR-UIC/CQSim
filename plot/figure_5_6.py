@@ -225,8 +225,8 @@ def figure5a():
     avg_uti_per_week(
         exp1c1 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_1/Results/theta_2022.ult',
         exp2c1 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name = f'{output}/figure5a.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
@@ -237,8 +237,8 @@ def figure5b():
     avg_uti_per_week(
         exp1c1 ='../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_1/Results/theta_2022.ult',
         exp2c1 = '../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name = f'{output}/figure5b.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
@@ -249,8 +249,8 @@ def figure5c():
     job_submits_per_week(
         exp1c1 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_1/Results/theta_2022.ult',
         exp1c2 = '../data/Results/exp_theta_two_parts/probable_user_1_0.5/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name = f'{output}/figure5c.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
@@ -261,8 +261,8 @@ def figure5d():
     job_submits_per_week(
         exp1c1 ='../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_1/Results/theta_2022.ult',
         exp1c2 = '../data/Results/exp_theta_two_parts/optimal_turnaround_1/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name = f'{output}/figure5d.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
@@ -273,8 +273,8 @@ def figure6a():
     avg_uti_per_week(
         exp1c1 = '../data/Results/exp_theta_two_parts/probable_user_1.3_0.6/cluster_1/Results/theta_2022.ult',
         exp2c1 = '../data/Results/exp_theta_two_parts/probable_user_1.3_0.6/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name=f'{output}/figure6a.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
@@ -285,8 +285,8 @@ def figure6b():
     avg_uti_per_week(
         exp1c1 ='../data/Results/exp_theta_two_parts/optimal_turnaround_1.3/cluster_1/Results/theta_2022.ult',
         exp2c1 = '../data/Results/exp_theta_two_parts/optimal_turnaround_1.3/cluster_2/Results/theta_2022.ult',
-        exp_1_name = "Cluster 1",
-        exp_2_name = "Cluster 2",
+        exp_1_name = "System 1",
+        exp_2_name = "System 2",
         fig_name=f'{output}/figure6b.png',
         start_time_offset=1641021254,
         line_colors=['red', 'blue']
