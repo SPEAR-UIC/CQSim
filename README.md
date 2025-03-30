@@ -8,6 +8,8 @@ Accepted to ACM SIGSIM PADS 2025
 
 Public repository can be found at: https://github.com/SPEAR-UIC/CQSim/tree/CQSimPlus
 
+Zenodo Artifact: https://zenodo.org/records/15109146
+
 ## Authors & Contacts
 
 * Yash Kurkure <ykurku2@uic.edu>
