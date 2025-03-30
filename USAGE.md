@@ -57,3 +57,6 @@ while not cqp.check_sim_ended(theta):
 ```
 
 For examples that simulate multiple clusters and use multi-process prediction see files src/exp_theta_two_parts.py and src/exp_polaris_theta.py. The first one corresponds to the experiments in the paper cited above and the second one is the case study from the same paper.
+
+
+Once a python file with the experimental setup is created, simply running the file with the experiment should also run the simualtor.
