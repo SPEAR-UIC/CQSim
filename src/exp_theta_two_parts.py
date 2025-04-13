@@ -14,7 +14,8 @@ import datetime
 # All results will be stored within this directory
 master_exp_directory = f'../data/Results/exp_theta_two_parts'
 
-def exp_1(x, y, tqdm_pos, tqdm_lock):
+def exp_1(x, y, tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Experiment 1
 
@@ -161,7 +162,8 @@ def exp_1(x, y, tqdm_pos, tqdm_lock):
         "theta" : cqp.get_job_results(theta)
     }
 
-def exp_2(x, tqdm_pos, tqdm_lock):
+def exp_2(x, tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Experiment 2
 

@@ -16,7 +16,8 @@ import time
 master_exp_directory = f'../data/Results/exp_polaris_theta'
 
 
-def exp_theta(tqdm_pos, tqdm_lock):
+def exp_theta(tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Experiment Theta
 
@@ -94,7 +95,8 @@ def exp_theta(tqdm_pos, tqdm_lock):
     }
 
 
-def exp_polaris(tqdm_pos, tqdm_lock):
+def exp_polaris(tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Experiment Polaris
 
@@ -173,7 +175,8 @@ def exp_polaris(tqdm_pos, tqdm_lock):
     }
 
 
-def exp_polaris_theta_random(tqdm_pos, tqdm_lock):
+def exp_polaris_theta_random(tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Theta and Polaris Metascheduled using random allocation
     """
@@ -323,7 +326,8 @@ def exp_polaris_theta_random(tqdm_pos, tqdm_lock):
     }
 
 
-def exp_polaris_theta_sgst(tqdm_pos, tqdm_lock):
+def exp_polaris_theta_sgst(tqdm_pos, tqdm_lock, seed):
+    random.seed(seed)
     """
     Theta and Polaris Metascheduled using sgst
     """

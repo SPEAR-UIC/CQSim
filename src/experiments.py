@@ -10,19 +10,20 @@ from exp_polaris_theta import exp_polaris_theta_sgst as casestudy_sgst
 
 if __name__ == "__main__":
 
-    random.seed(100)
+    # Set the seed for random
+    seed = 100
 
     lock = multiprocessing.Manager().Lock()
 
     p = []
 
-    p.append(multiprocessing.Process(target=exp_random, args=(1, 0.5, 1, lock,)))
-    p.append(multiprocessing.Process(target=exp_random, args=(1.30, 0.6, 2, lock,)))
-    p.append(multiprocessing.Process(target=exp_sgst, args=(1.30, 3, lock,)))
-    p.append(multiprocessing.Process(target=exp_sgst, args=(1, 4, lock,)))
-    p.append(multiprocessing.Process(target=casestudy_siloed_theta, args=(5, lock,)))
-    p.append(multiprocessing.Process(target=casestudy_siloed_polaris, args=(6, lock,)))
-    p.append(multiprocessing.Process(target=casestudy_sgst, args=(7, lock,)))
+    p.append(multiprocessing.Process(target=exp_random, args=(1, 0.5, 1, lock, seed,)))
+    p.append(multiprocessing.Process(target=exp_random, args=(1.30, 0.6, 2, lock, seed,)))
+    p.append(multiprocessing.Process(target=exp_sgst, args=(1.30, 3, lock, seed,)))
+    p.append(multiprocessing.Process(target=exp_sgst, args=(1, 4, lock, seed,)))
+    p.append(multiprocessing.Process(target=casestudy_siloed_theta, args=(5, lock, seed,)))
+    p.append(multiprocessing.Process(target=casestudy_siloed_polaris, args=(6, lock, seed,)))
+    p.append(multiprocessing.Process(target=casestudy_sgst, args=(7, lock, seed,)))
 
     for proc in p:
         proc.start()
