@@ -14,5 +14,3 @@ RUN pip3 install kaleido
 COPY . /cqsimplus
 
 WORKDIR /cqsimplus
-
-ENTRYPOINT ["/cqsimplus/container_entry.sh"] 

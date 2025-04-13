@@ -3,7 +3,8 @@
 ###########################################
 # Preprocess log data
 cd preprocessing
-
+echo "Time Zone Date"
+date
 echo "Unzipping data"
 unzip data.zip
 

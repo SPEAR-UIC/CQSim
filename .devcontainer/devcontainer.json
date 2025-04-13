@@ -1,0 +1,13 @@
+{
+    "name": "CQSimPlus Dev Container",
+    "dockerFile": "Dockerfile",
+
+    // Extensions to install
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    }
+}
